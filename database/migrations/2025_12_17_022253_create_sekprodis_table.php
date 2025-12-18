@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('sekprodi', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('dosen_id')->constrained("dosen")->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained("user")->cascadeOnDelete();
             $table->foreignId('prodi_id')->constrained("prodi")->cascadeOnDelete();
             $table->date('periode_mulai');
             $table->date('periode_selesai')->nullable();

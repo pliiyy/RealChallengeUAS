@@ -7,6 +7,7 @@ use App\Models\Dekan;
 use App\Models\Fakultas;
 use App\Models\Role;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -20,7 +21,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
 
         Role::insert([
             ['nama'=>'dosen'],
@@ -30,10 +30,12 @@ class DatabaseSeeder extends Seeder
             ['nama'=>'mahasiswa'],
             ['nama'=>'kosma'],
         ]);
+
         $fakultas = Fakultas::firstOrCreate([
             'nama' => 'Ilmu Komputer',
             'status' => "AKTIF"
         ]);
+
         $user = User::firstOrCreate(
             ['email' => 'master@kampus.ac.id'],
             [
@@ -51,7 +53,9 @@ class DatabaseSeeder extends Seeder
         // 4️⃣ Model Dekan
         Dekan::firstOrCreate([
             'user_id' => $user->id,
-            'fakultas_id' => $fakultas->id
+            'fakultas_id' => $fakultas->id,
+            'periode_mulai' => Carbon::now(),
+            'periode_selesai' => Carbon::now(),
         ]);
     }
     

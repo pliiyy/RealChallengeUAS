@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained("user")->cascadeOnDelete();
             $table->foreignId('fakultas_id')->constrained("fakultas")->cascadeOnDelete();
+            $table->date('periode_mulai');
+            $table->date('periode_selesai')->nullable();
             $table->enum('status',['AKTIF','NONAKTIF'])->default('AKTIF');
             $table->timestamps();
         });

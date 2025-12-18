@@ -9,7 +9,7 @@ class FakultasController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Fakultas::query();
+        $query = Fakultas::with(["dekan"]);
 
         if ($request->filled('search')) {
             $query->where('nama', 'like', '%'.$request->search.'%');

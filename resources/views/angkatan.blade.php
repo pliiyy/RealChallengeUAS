@@ -1,17 +1,17 @@
 @extends('layout')
-@section('title', 'Fakultas')
+@section('title', 'Angkatan')
 
 @section('content')
 <div class="col-lg-10 col-md-9 content">
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span><i class="bi bi-building me-2"></i>Data Fakultas</span>
+      <span>🚪 Data Angkatan</span>
       <button class="btn btn-light btn-sm text-primary fw-semibold" data-bs-toggle="modal"
           data-bs-target="#addModal">
-        <i class="bi bi-plus-circle"></i> Tambah Fakultas
+        <i class="bi bi-plus-circle"></i> Tambah Angkatan
       </button>
-      <form action="/fakultas" method="GET" class="d-flex gap-2 align-items-center">
-          <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari nama ruangan"
+      <form action="/angkatan" method="GET" class="d-flex gap-2 align-items-center">
+          <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari ..."
               value="{{ request('search') }}">
 
           <select name="status" class="form-select form-select-sm">
@@ -28,22 +28,16 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Nama Fakultas</th>
-              <th>Dekan</th>
+              <th>Tahun Angkatan</th>
               <th>Status</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            @foreach ($fakultas as $index => $kls)
+            @foreach ($angkatan as $index => $kls)
               <tr>
-                <td>{{ $fakultas->firstItem() + $index }}</td>
-                <td>{{ $kls->nama }}</td>
-                <td>
-                  @foreach ($kls->dekan as $item)
-                    <span class="badge bg-{{ $item->status === "AKTIF" ? "success":"secondary opacity-80" }}">{{ $item->User->Biodata->nama }}</span>
-                  @endforeach
-                </td>
+                <td>{{ $angkatan->firstItem() + $index }}</td>
+                <td>{{ $kls->tahun }}</td>
                 <td>
                     @if ($kls->status == 'AKTIF')
                         <span class="badge bg-success">{{ ucfirst(strtolower($kls->status)) }}</span>
@@ -55,12 +49,13 @@
                   <button type="button" class="btn btn-outline-primary btn-sm btn-edit"
                       data-bs-toggle="modal" data-bs-target="#editModal"
                       data-id="{{ $kls->id }}"
-                      data-nama="{{ $kls->nama }}"> 
+                      data-tahun="{{ $kls->tahun }}"
+                      > 
                       <i class="bi bi-pencil"></i>
                   </button>
                   <button type="button" class="btn btn-outline-danger btn-sm btn-delete"
                       data-bs-toggle="modal" data-bs-target="#deleteModal"
-                      data-id="{{ $kls->id }}" data-nama="{{ $kls->nama }}">
+                      data-id="{{ $kls->id }}" data-nama="{{ $kls->tahun }}">
                       <i class="bi bi-trash"></i>
                   </button>
                 </td>
@@ -69,7 +64,7 @@
           </tbody>
         </table>
         <div class="mt-3">
-            {{ $fakultas->links() }}
+            {{ $angkatan->links() }}
         </div>
       </div>
     </div>
@@ -78,17 +73,17 @@
 
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form class="modal-content" action="/fakultas" method="POST">
+    <form class="modal-content" action="/angkatan" method="POST">
       @csrf
       @method('POST')
       <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="addModalLabel">Tambah Fakultas Baru</h5>
+          <h5 class="modal-title" id="addRuanganModalLabel">Tambah Angkatan Baru</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label">Nama Fakultas</label>
-          <input type="text" class="form-control" placeholder="Ilmu Komputer" name="nama">
+          <label class="form-label">Tahun Angkatan</label>
+          <input type="number" class="form-control" placeholder="Contoh: 2025" name="tahun">
         </div>
       </div>
       <div class="modal-footer">
@@ -105,14 +100,14 @@
       @csrf
       @method('PUT')
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="editModalLabel">Edit Fakultas: <span id="edit-name"></span></h5>
+        <h5 class="modal-title" id="editModalLabel">Edit Angkatan: <span id="edit-name"></span></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" name="id" id="edit-id">
         <div class="mb-3">
-          <label for="edit-nama" class="form-label">Nama Fakultas</label>
-          <input type="text" class="form-control" id="edit-nama" name="nama" required />
+          <label for="edit-tahun" class="form-label">Tahun Angkatan</label>
+          <input type="number" class="form-control" id="edit-tahun" name="tahun" required />
         </div>
       </div>
       <div class="modal-footer">
@@ -133,7 +128,7 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-          <p>Apakah Anda yakin ingin menghapus Fakultas ini? **<span id="delete-name"></span>**?</p>
+          <p>Apakah Anda yakin ingin menghapus data ini? **<span id="delete-name"></span>**?</p>
           <input type="hidden" name="id" id="delete-id">
       </div>
       <div class="modal-footer">
@@ -150,12 +145,12 @@
       $('.btn-edit').on('click', function() {
           // 1. Ambil data dari data-attributes
           var id = $(this).data('id');
-          var nama = $(this).data('nama');
+          var tahun = $(this).data('tahun');
 
           $('#edit-id').val(id);
-          $('#edit-nama').val(nama);
+          $('#edit-tahun').val(tahun);
 
-          $('#editForm').attr('action', '/ruangan/' + id);
+          $('#editForm').attr('action', '/angkatan/' + id);
 
 
       });
@@ -166,7 +161,7 @@
           $('#delete-id').val(id);
           $('#delete-name').text(nama);
 
-          $('#deleteForm').attr('action', '/ruangan/' + id);
+          $('#deleteForm').attr('action', '/angkatan/' + id);
       });
   });
 </script>

@@ -8,4 +8,9 @@ class Kaprodi extends Model
 {
     protected $table = 'kaprodi';
     protected $guarded = ['id'];
+
+    public function User()
+    {
+        return $this->belongsTo(User::class,'user_id');
+    }
 }

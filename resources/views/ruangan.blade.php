@@ -148,12 +148,12 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-          <p>Apakah Anda yakin ingin menghapus Ruangan ini? **<span id="delete-name"></span>**?</p>
+          <p>Apakah Anda yakin ingin menghapus data ini? **<span id="delete-name"></span>**?</p>
           <input type="hidden" name="id" id="delete-id">
       </div>
       <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-danger">Ya, Hapus Ruangan Ini</button>
+          <button type="submit" class="btn btn-danger">Ya, Hapus</button>
       </div>
     </form>
   </div>
