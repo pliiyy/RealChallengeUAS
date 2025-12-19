@@ -22,8 +22,6 @@ class ShiftController extends Controller
         }
         if ($request->filled('tipe')) {
             $query->where('tipe', $request->tipe);
-        }else{
-            $query->where("tipe","AKTIF");
         }
 
         // Pagination, misal 10 data per halaman

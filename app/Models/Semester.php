@@ -8,4 +8,8 @@ class Semester extends Model
 {
     protected $table = 'semester';
     protected $guarded = ['id'];
+    protected $casts = [
+        'tanggal_mulai' => 'datetime',
+        'tanggal_selesai' => 'datetime',
+    ];
 }

@@ -11,12 +11,12 @@
         <i class="bi bi-plus-circle"></i> Tambah Shift
       </button>
       <form action="/shift" method="GET" class="d-flex gap-2 align-items-center">
-          <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari nama ruangan"
+          <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari shift..."
               value="{{ request('search') }}">
 
           <select name="tipe" class="form-select form-select-sm">
-              <option value="KELAS" {{ request('tipe') == 'KELAS' ? 'selected' : '' }}>Aktif</option>
-              <option value="ISOMA" {{ request('tipe') == 'ISOMA' ? 'selected' : '' }}>Nonaktif</option>
+              <option value="KELAS" {{ request('tipe') == 'KELAS' ? 'selected' : '' }}>Kelas</option>
+              <option value="ISOMA" {{ request('tipe') == 'ISOMA' ? 'selected' : '' }}>Isoma</option>
           </select>
           <select name="status" class="form-select form-select-sm">
               <option value="AKTIF" {{ request('status') == 'AKTIF' ? 'selected' : '' }}>Aktif</option>
@@ -44,10 +44,7 @@
               <tr>
                 <td>{{ $shift->firstItem() + $index }}</td>
                 <td>{{ $kls->nama }}</td>
-                <td>
-                  <p>{{ $kls->jam_mulai }}</p>
-                  <p class="border-top opacity-80">{{ $kls->jam_selesai }}</p>
-                </td>
+                <td>{{ $kls->jam_mulai }} - {{ $kls->jam_selesai }}</td>
                 <td>
                     @if ($kls->tipe == 'KELAS')
                         <span class="badge bg-warning">{{ ucfirst(strtolower($kls->tipe)) }}</span>
@@ -120,6 +117,14 @@
           <input type="time" class="form-control" name="jam_selesai" id="add-jam_selesai" required />
           <div class="invalid-feedback" id="add-jam_selesai-error"></div>
         </div>
+        <div class="mb-3">
+            <label for="tipe" class="form-label">Tipe</label>
+            <select class="form-select" id="tipe" name="tipe" required>
+              <option value="">-- Pilih Tipe --</option>
+              <option value="KELAS">Kelas</option>
+              <option value="ISOMA">Isoma</option>
+            </select>
+        </div>
         <!-- Info Aturan Shift -->
         <div class="alert alert-warning alert-sm" id="add-shift-info" style="display:none;">
           <small>
@@ -167,11 +172,18 @@
             <input class="form-control" id="edit-jam_selesai" name="jam_selesai" type="time" required />
             <div class="invalid-feedback" id="edit-jam_selesai-error"></div>
         </div>
+        <div class="mb-3">
+            <label for="edit-tipe" class="form-label">Tipe</label>
+            <select class="form-select" id="edit-tipe" name="tipe" required>
+              <option value="">-- Pilih Tipe --</option>
+              <option value="KELAS">Kelas</option>
+              <option value="ISOMA">Isoma</option>
+            </select>
+        </div>
 
         <!-- Info Aturan Shift -->
         <div class="alert alert-warning alert-sm" id="edit-shift-info" style="display:none;">
-            <small><i class="bi bi-exclamation-triangle me-1"></i><span
-                    id="edit-shift-info-text"></span></small>
+            <small><i class="bi bi-exclamation-triangle me-1"></i><span id="edit-shift-info-text"></span></small>
         </div>
       </div>
       <div class="modal-footer">

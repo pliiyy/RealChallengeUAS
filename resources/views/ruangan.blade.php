@@ -11,7 +11,7 @@
         <i class="bi bi-plus-circle"></i> Tambah Ruangan
       </button>
       <form action="/ruangan" method="GET" class="d-flex gap-2 align-items-center">
-          <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari nama ruangan"
+          <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari ruangan ..."
               value="{{ request('search') }}">
 
           <select name="status" class="form-select form-select-sm">
