@@ -13,4 +13,12 @@ class Kelas extends Model
     {
         return $this->hasMany(Kosma::class);
     }
+    public function Prodi()
+    {
+        return $this->belongsTo(Prodi::class,"prodi_id");
+    }
+    public function Angkatan()
+    {
+        return $this->belongsTo(Angkatan::class,"angkatan_id");
+    }
 }

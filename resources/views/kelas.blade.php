@@ -1,31 +1,35 @@
 @extends('layout')
-@section('title', 'Program Studi')
+@section('title', 'Kelas')
 
 @section('content')
 <div class="col-lg-10 col-md-9 content">
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span><i class="bi bi-journal-text me-2"></i> Program Studi</span>
+      <span>🏫 Data Kelas</span>
       <button class="btn btn-light btn-sm text-primary fw-semibold" data-bs-toggle="modal"
           data-bs-target="#addModal">
-        <i class="bi bi-plus-circle"></i> Tambah Prodi
+        <i class="bi bi-plus-circle"></i> Tambah Kelas
       </button>
-      <form action="/prodi" method="GET" class="d-flex gap-2 align-items-center">
-          <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari Prodi ..."
+      <form action="/kelas" method="GET" class="d-flex gap-2 align-items-center">
+          <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari Kelas ..."
               value="{{ request('search') }}">
 
-          <select name="fakultas_id" class="form-select form-select-sm">
-            <option></option>
-              @foreach ($fakultas as $item)
-                <option value="{{ $item->id }}" {{ request('fakultas_id') == $item->id ? 'selected' : '' }}>{{ $item->nama }}</option>
+          <select name="prodi_id" class="form-select form-select-sm">
+            <option>by prodi ...</option>
+              @foreach ($prodi as $item)
+                <option value="{{ $item->id }}" {{ request('prodi_id') == $item->id ? 'selected' : '' }}>{{ $item->nama }}</option>
               @endforeach
           </select>
-          <select name="jenjang" class="form-select form-select-sm">
-            <option></option>
-              <option value="D3" {{ request('jenjang') == 'D3' ? 'selected' : '' }}>D3</option>
-              <option value="S1" {{ request('jenjang') == 'S1' ? 'selected' : '' }}>S1</option>
-              <option value="S2" {{ request('jenjang') == 'S2' ? 'selected' : '' }}>S2</option>
-              <option value="S3" {{ request('jenjang') == 'D3' ? 'selected' : '' }}>S3</option>
+          <select name="angkatan_id" class="form-select form-select-sm">
+            <option>by angkatan ...</option>
+            @foreach ($angkatan as $item)
+                <option value="{{ $item->id }}" {{ request('angkatan_id') == $item->id ? 'selected' : '' }}>{{ $item->tahun }}</option>
+              @endforeach
+          </select>
+          <select name="angkatan_id" class="form-select form-select-sm">
+            <option>by tipe ...</option>
+            <option value="R" {{ request('tipe') == 'R' ? 'selected' : '' }}>Reguller</option>
+              <option value="NR" {{ request('tipe') == 'NR' ? 'selected' : '' }}>Non Reguller</option>
           </select>
           <select name="status" class="form-select form-select-sm">
               <option value="AKTIF" {{ request('status') == 'AKTIF' ? 'selected' : '' }}>Aktif</option>
@@ -41,24 +45,37 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Fakultas</th>
+              <th>Kelas</th>
+              <th>Angkatan</th>
               <th>Program Studi</th>
-              <th>Kode</th>
-              <th>Jenjang</th>
-              <th>Jml Kelas</th>
+              <th>Kapasitas</th>
+              <th>Tipe</th>
               <th>Status</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            @foreach ($prodi as $index => $kls)
+            @foreach ($kelas as $index => $kls)
               <tr>
-                <td>{{ $prodi->firstItem() + $index }}</td>
+                <td>{{ $kelas->firstItem() + $index }}</td>
                 <td><span class="badge bg-info">{{ $kls->fakultas->nama }}</span></td>
-                <td>{{ $kls->nama }}</td>
-                <td>{{ $kls->kode }}</td>
-                <td>{{ $kls->jenjang }}</td>
-                <td>{{ count($kls->kelas) }}</td>
+                <td class="flex flex-col">
+                  <span>{{ $kls->nama }}</span>
+                  <span class="opacity-70">{{ $kls->kode }}</span>
+                </td>
+                <td>{{ $kls->angkatan->tahun }}</td>
+                <td class="flex flex-col">
+                  <span>{{ $kls->prodi->nama }}</span>
+                  <span class="opacity-70">smstr {{ $kls->semester }}</span>
+                </td>
+                <td>{{ $kl->kapasitas }}</td>
+                <td>
+                  @if ($kls->tipe == 'R')
+                      <span class="badge bg-info">{{ $kls->tipe }}</span>
+                  @else
+                      <span class="badge bg-warning">{{ $kls->tipe }}</span>
+                  @endif
+                </td>
                 <td>
                     @if ($kls->status == 'AKTIF')
                         <span class="badge bg-success">{{ ucfirst(strtolower($kls->status)) }}</span>
@@ -70,10 +87,12 @@
                   <button type="button" class="btn btn-outline-primary btn-sm btn-edit"
                       data-bs-toggle="modal" data-bs-target="#editModal"
                       data-id="{{ $kls->id }}"
-                      data-fakultas_id="{{ $kls->fakultas_id }}"
                       data-nama="{{ $kls->nama }}"
                       data-kode="{{ $kls->kode }}"
-                      data-jenjang="{{ $kls->jenjang }}"
+                      data-angkatan_id="{{ $kls->angkatan_id }}"
+                      data-prodi_id="{{ $kls->prodi_id }}"
+                      data-semester="{{ $kls->semester }}"
+                      data-tipe="{{ $kls->tipe }}"
                       > 
                       <i class="bi bi-pencil"></i>
                   </button>
@@ -97,37 +116,47 @@
 
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form class="modal-content" action="/prodi" method="POST">
+    <form class="modal-content" action="/kelas" method="POST">
       @csrf
       @method('POST')
       <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="addModalLabel">Tambah Program Studi</h5>
+          <h5 class="modal-title" id="addModalLabel">Tambah Kelas</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label">Fakultas</label>
-          <select name="fakultas_id" class="form-select">
-              @foreach ($fakultas as $item)
+          <label class="form-label">Nama Kelas</label>
+          <input type="text" class="form-control" placeholder="Contoh: AB11" name="nama">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Kode Kelas</label>
+          <input type="text" class="form-control" placeholder="Contoh: AB" name="kode">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Semester</label>
+          <input type="text" class="form-control" placeholder="Contoh: 1" name="semester">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Program Studi</label>
+          <select name="prodi_id" class="form-select">
+              @foreach ($prodi as $item)
                 <option value="{{ $item->id }}">{{ $item->nama }}</option>
               @endforeach
           </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">Program Studi</label>
-          <input type="text" class="form-control" placeholder="Contoh: Sistem Informasi" name="nama">
+          <label class="form-label">Angkatan</label>
+          <select name="angkatan_id" class="form-select">
+              @foreach ($angkatan as $item)
+                <option value="{{ $item->id }}">{{ $item->tahun }}</option>
+              @endforeach
+          </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">Kode Prodi</label>
-          <input type="text" class="form-control" placeholder="Contoh: Sistem Informasi" name="kode">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Jenjang</label>
-          <select name="jenjang" class="form-select">
-            <option value="D3">D3</option>
-            <option value="S1">S1</option>
-            <option value="S2">S2</option>
-            <option value="S3">S3</option>
+          <label class="form-label">Tipe</label>
+          <select name="tipe" class="form-select">
+            <option value="R">Reguller</option>
+            <option value="NR">Non Reguller</option>
           </select>
         </div>
       </div>
@@ -145,34 +174,44 @@
       @csrf
       @method('PUT')
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="editModalLabel">Edit Fakultas: <span id="edit-name"></span></h5>
+        <h5 class="modal-title" id="editModalLabel">Edit Kelas: <span id="edit-name"></span></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" name="id" id="edit-id">
         <div class="mb-3">
-          <label class="form-label">Fakultas</label>
-          <select name="fakultas_id" id="edit-fakultas_id" class="form-select">
-              @foreach ($fakultas as $item)
+          <label class="form-label">Nama Kelas</label>
+          <input type="text" class="form-control" placeholder="Contoh: AB11" name="nama" id="edit-nama">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Kode Kelas</label>
+          <input type="text" class="form-control" placeholder="Contoh: AB" name="kode" id="edit-kode">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Semester</label>
+          <input type="text" class="form-control" placeholder="Contoh: 1" name="semester" id="edit-semester">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Program Studi</label>
+          <select name="prodi_id" class="form-select" id="edit-prodi_id">
+              @foreach ($prodi as $item)
                 <option value="{{ $item->id }}">{{ $item->nama }}</option>
               @endforeach
           </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">Program Studi</label>
-          <input type="text" class="form-control" id="edit-nama" placeholder="Contoh: Sistem Informasi" name="nama">
+          <label class="form-label">Angkatan</label>
+          <select name="angkatan_id" class="form-select" id="edit-angkatan_id">
+              @foreach ($angkatan as $item)
+                <option value="{{ $item->id }}">{{ $item->tahun }}</option>
+              @endforeach
+          </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">Kode Prodi</label>
-          <input type="text" class="form-control" id="edit-kode" placeholder="Contoh: Sistem Informasi" name="kode">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Jenjang</label>
-          <select name="jenjang" class="form-select" id="edit-jenjang">
-            <option value="D3">D3</option>
-            <option value="S1">S1</option>
-            <option value="S2">S2</option>
-            <option value="S3">S3</option>
+          <label class="form-label">Tipe</label>
+          <select name="tipe" class="form-select" id="edit-tipe">
+            <option value="R">Reguller</option>
+            <option value="NR">Non Reguller</option>
           </select>
         </div>
       </div>
@@ -194,7 +233,7 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-          <p>Apakah Anda yakin ingin menghapus Fakultas ini? **<span id="delete-name"></span>**?</p>
+          <p>Apakah Anda yakin ingin menghapus data ini? **<span id="delete-name"></span>**?</p>
           <input type="hidden" name="id" id="delete-id">
       </div>
       <div class="modal-footer">
@@ -211,18 +250,22 @@
       $('.btn-edit').on('click', function() {
           // 1. Ambil data dari data-attributes
           var id = $(this).data('id');
-          var fakultas_id = $(this).data('fakultas_id');
           var nama = $(this).data('nama');
           var kode = $(this).data('kode');
-          var jenjang = $(this).data('jenjang');
+          var angkatan_id = $(this).data('angkatan_id');
+          var prodi_id = $(this).data('prodi_id');
+          var semester = $(this).data('semester');
+          var tipe = $(this).data('tipe');
 
           $('#edit-id').val(id);
-          $('#edit-fakultas_id').val(fakultas_id);
           $('#edit-nama').val(nama);
           $('#edit-kode').val(kode);
-          $('#edit-jenjang').val(jenjang);
+          $('#edit-angkatan_id').val(angkatan_id);
+          $('#edit-prodi_id').val(prodi_id);
+          $('#edit-semester').val(semester);
+          $('#edit-tipe').val(tipe);
 
-          $('#editForm').attr('action', '/prodi/' + id);
+          $('#editForm').attr('action', '/kelas/' + id);
 
 
       });
@@ -233,7 +276,7 @@
           $('#delete-id').val(id);
           $('#delete-name').text(nama);
 
-          $('#deleteForm').attr('action', '/prodi/' + id);
+          $('#deleteForm').attr('action', '/kelas/' + id);
       });
   });
 </script>

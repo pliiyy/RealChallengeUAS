@@ -29,6 +29,7 @@
             <tr>
               <th>#</th>
               <th>Tahun Angkatan</th>
+              <th>Jml Kelas</th>
               <th>Status</th>
               <th>Aksi</th>
             </tr>
@@ -38,6 +39,7 @@
               <tr>
                 <td>{{ $angkatan->firstItem() + $index }}</td>
                 <td>{{ $kls->tahun }}</td>
+                <td>{{ count($kls->kelas) }}</td>
                 <td>
                     @if ($kls->status == 'AKTIF')
                         <span class="badge bg-success">{{ ucfirst(strtolower($kls->status)) }}</span>

@@ -10,7 +10,7 @@ class ProdiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Prodi::query();
+        $query = Prodi::with('fakultas','kelas');
 
         if ($request->filled('search')) {
             $query->where('nama', 'like', '%'.$request->search.'%')->orWhere("kode", 'like', '%'.$request->search.'%');

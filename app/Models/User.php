@@ -28,7 +28,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function Roles() {
+    public function Role() {
         return $this->belongsToMany(Role::class);
     }
     public function Dekan()
@@ -42,6 +42,14 @@ class User extends Authenticatable
     public function Mahasiswa()
     {
         return $this->hasOne(Mahasiswa::class,'user_id');
+    }
+    public function Kaprodi()
+    {
+        return $this->hasOne(Kaprodi::class,'user_id');
+    }
+    public function Sekprodi()
+    {
+        return $this->hasOne(Sekprodi::class,'user_id');
     }
     public function Biodata()
     {

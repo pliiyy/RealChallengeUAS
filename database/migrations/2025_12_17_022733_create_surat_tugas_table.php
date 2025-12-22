@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('nomor_surat');
             $table->string('nomor_sk');
             $table->date('tanggal');
+            $table->string('file')->nullable();
             $table->enum('status',['AKTIF','NONAKTIF',"APPROVED","REJECTED"])->default('AKTIF');
             $table->timestamps();
         });
