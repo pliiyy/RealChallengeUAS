@@ -21,4 +21,11 @@ class Kelas extends Model
     {
         return $this->belongsTo(Angkatan::class,"angkatan_id");
     }
+    public function PengampuMk()
+    {
+        return $this->hasMany(
+            Pengampu_mk::class,
+            'pengampu_mk_kelas_id'
+        );
+    }
 }

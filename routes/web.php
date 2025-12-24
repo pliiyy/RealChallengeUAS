@@ -15,27 +15,33 @@ use App\Http\Controllers\SuratTugasController;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+Route::get('/login', function () {
     return view('login');
-});
-Route::post('/login',[AuthController::class,"login"]);
+})->middleware('guest');
+Route::post('/login',[AuthController::class,"login"])->middleware('guest');
 
 // Master Data
-Route::resource("fakultas",FakultasController::class);
-Route::resource("prodi",ProdiController::class);
-Route::resource("matakuliah",MatakuliahController::class);
-Route::resource("semester",SemesterController::class);
-Route::resource("kelas",KelasController::class);
-Route::resource("shift",ShiftController::class);
-Route::resource("ruangan",RuanganController::class);
-Route::resource("angkatan",AngkatanController::class);
+Route::middleware('auth.user')->group(function () {
+    Route::resource("fakultas",FakultasController::class)->middleware('auth.user');
+    Route::resource("prodi",ProdiController::class)->middleware('auth.user');
+    Route::resource("matakuliah",MatakuliahController::class)->middleware('auth.user');
+    Route::resource("semester",SemesterController::class)->middleware('auth.user');
+    Route::resource("kelas",KelasController::class)->middleware('auth.user');
+    Route::resource("shift",ShiftController::class)->middleware('auth.user');
+    Route::resource("ruangan",RuanganController::class)->middleware('auth.user');
+    Route::resource("angkatan",AngkatanController::class)->middleware('auth.user');
+});
 
 // User Data
-Route::resource("dekan",DekanController::class);
-Route::resource("dosen",DosenController::class);
+Route::middleware('auth.user')->group(function () {
+    Route::resource("dekan",DekanController::class)->middleware('auth.user');
+    Route::resource("dosen",DosenController::class)->middleware('auth.user');
+});
 
 // Jadwal Data
-Route::resource("surat",SuratTugasController::class);
+Route::middleware('auth.user')->group(function () {
+    Route::resource("surat",SuratTugasController::class)->middleware('auth.user');
+});
 
 // Wilayah Data
 Route::get('/api/provinces', function () {
@@ -50,3 +56,7 @@ Route::get('/api/districts/{regencyId}', function ($regencyId) {
     $response = Http::get("https://wilayah.id/api/districts/{$regencyId}.json");
     return response()->json($response->json());
 });
+
+// PDF Data
+Route::get('/laporan/pdf/generate', [SuratTugasController::class, 'generateSurat'])->name('laporan.pdf.generate');
+Route::get('/laporan/pdf/show', [SuratTugasController::class, 'viewSurat'])->name('laporan.pdf.show');

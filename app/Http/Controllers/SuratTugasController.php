@@ -6,11 +6,14 @@ use App\Models\Dosen;
 use App\Models\Kelas;
 use App\Models\Matakuliah;
 use App\Models\Pengampu_mk;
+use App\Models\PengampuMKKelas;
 use App\Models\Semester;
 use App\Models\Surat_tugas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class SuratTugasController extends Controller
 {
@@ -24,6 +27,8 @@ class SuratTugasController extends Controller
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }else{
+            $query->where('status', "!=", "NONAKTIF");
         }
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
@@ -51,7 +56,7 @@ class SuratTugasController extends Controller
         'semester_id' => 'required|string|max:255',
         'pengampu' => 'required|array',
         'pengampu.*.matakuliah_id' => 'required|string',
-        'pengampu.*.kelas_id' => 'required|string',
+        'pengampu.*.kelas' => 'required|array',
         'pengampu.*.sks' => 'required',
         ]);
 
@@ -68,7 +73,14 @@ class SuratTugasController extends Controller
             ]);
             foreach ($request->pengampu as $pengampu) {
                 $pengampu['surat_tugas_id'] = $savedSurat->id;
-                Pengampu_mk::create($pengampu);
+                $savedPengampu = Pengampu_mk::create($pengampu);
+                
+                foreach ($pengampu['kelas'] as $kelas) {
+                    PengampuMKKelas::create([
+                        'pengampu_mk_id' => $savedPengampu->id,
+                        'kelas_id' => $kelas,
+                    ]);
+                }
             }
         });
 
@@ -76,12 +88,90 @@ class SuratTugasController extends Controller
     }
     public function update(Request $request,  $id)
     {
+        $surat = Surat_tugas::findOrFail($id);
+        
+        $validated = $request->validate([
+            'nomor_surat' => 'nullable|string|max:255',
+            'nomor_sk' => 'nullable|string|max:255',
+            'tanggal' => 'nullable|date',
+            'semester_id' => 'nullable|string|max:255',
+            'pengampu' => 'nullable|array',
+            'pengampu.*.matakuliah_id' => 'nullable|string',
+            'pengampu.*.kelas' => 'nullable|array',
+            'pengampu.*.sks' => 'nullable',
+            'status' => 'nullable',
+            'file' => 'nullable',
+        ]);
+        if ($request->hasFile('file')) {
+                // hapus foto lama
+            if ($surat->file && Storage::disk('public')->exists($surat->file)) {
+                Storage::disk('public')->delete($surat->file);
+            }
+
+            $photoPath = $request->file('file')
+                ->store('profil', 'public');
+            $surat->file = $photoPath;
+        }
+        $surat->update($validated);
+        if ($request->has('pengampu')) {
+            $surat->pengampu()->delete(); 
+
+            foreach ($request->pengampu as $data) {
+                $surat->pengampu()->create([
+                    'matakuliah_id' => $data['matakuliah_id'],
+                    'sks'           => $data['sks'],
+                ]);
+                if($data->has('kelas')){
+                    $surat->pengampu_mk()->kelas()->delete();
+                    foreach ($data['kelas'] as $kelas) {
+                        $surat->pengampu_mk()->kelas()->create($kelas);
+                    }
+                }
+            }
+        }
+
+        return redirect('/surat')->with('success', 'Surat tugas  berhasil diperbarui!');
     }
     public function destroy( $id)
     {
         $surat = Surat_tugas::findOrFail($id);
-        $surat->destroy();
+        $surat->status = "NONAKTIF";
+        $surat->update();
 
         return redirect('/surat')->with('success', 'Surat Tugas Mengajat ' . $surat->nomor_surat . ' berhasil dihapus!');
+    }
+
+    public function generateSurat(Request $request)
+    {
+        $suratId = $request->query('id');
+
+        $suratTugas = Surat_tugas::with(['dosen.user.biodata','dekan.fakultas','dekan.user.biodata', 'pengampu_mk.kelas','pengampu_mk.matakuliah.prodi','semester'])
+                                ->findOrFail($suratId); 
+
+        $data = [
+            'surat' => $suratTugas,
+        ];
+
+        $pdf = Pdf::loadView('pdf_surat', $data);
+        
+        return $pdf->stream('laporan_anda.pdf'); 
+        
+    }
+
+    public function viewSurat(Request $request)
+    {
+        $id = $request->query('id');
+        $doc = Surat_tugas::findOrFail($id);
+
+        if (!$doc->file ||!Storage::disk('public')->exists($doc->file)) {
+            abort(404, 'File not found');
+        }
+
+        $file = Storage::disk('public')->path($doc->file);
+
+        return response()->file($file, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.basename($file).'"'
+        ]);
     }
 }

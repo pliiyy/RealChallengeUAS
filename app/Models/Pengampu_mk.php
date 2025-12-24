@@ -15,7 +15,10 @@ class Pengampu_mk extends Model
     }
     public function Kelas()
     {
-        return $this->belongsTo(Kelas::class,'kelas_id');
+        return $this->belongsToMany(
+            Kelas::class,
+            'pengampu_mk_kelas'
+        );
     }
     public function Matakuliah()
     {

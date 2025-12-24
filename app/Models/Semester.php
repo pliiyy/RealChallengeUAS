@@ -12,4 +12,9 @@ class Semester extends Model
         'tanggal_mulai' => 'datetime',
         'tanggal_selesai' => 'datetime',
     ];
+
+    public function Surat_tugas()
+    {
+        return $this->hasMany(Surat_tugas::class);
+    }
 }

@@ -28,4 +28,10 @@ class Surat_tugas extends Model
     {
         return $this->hasMany(Pengampu_mk::class);
     }
+    public function photoUrl()
+    {
+        return $this->file
+            ? asset('storage/'.$this->file)
+            : null;
+    }
 }

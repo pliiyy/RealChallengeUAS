@@ -15,7 +15,7 @@
               value="{{ request('search') }}">
 
           <select name="user_id" class="form-select form-select-sm">
-            <option >by dosen ...</option>
+            <option value="">by dosen ...</option>
               @foreach ($dosen as $r)
                 <option value="{{ $r->id }}" {{ request('dosen_id') == $r->id ? 'selected' : '' }}>{{ $r->user->biodata->nama }}</option>
               @endforeach
@@ -80,7 +80,7 @@
                         title="Lihat PDF" data-surat-id="{{ $kls->id }}">
                        <i class="bi bi-printer-fill"></i></i>
                     </button>
-                    <button type="button" class="btn btn-sm btn-info btn-tampilkan-pdf"
+                    <button type="button" class="btn btn-sm btn-info btn-view-pdf"
                         title="Lihat PDF" data-surat-id="{{ $kls->id }}">
                         <i class="bi bi-file-earmark"></i>
                     </button>
@@ -102,6 +102,11 @@
                       data-bs-toggle="modal" data-bs-target="#editModal"
                       data-id="{{ $kls->id }}"
                       data-nomor_sk="{{ $kls->nomor_sk }}"
+                      data-nomor_surat="{{ $kls->nomor_surat }}"
+                      data-tanggal="{{ $kls->tanggal }}"
+                      data-semester_id="{{ $kls->semester_id }}"
+                      data-dosen_id="{{ $kls->dosen_id }}"
+                      data-pengampu_mk='@json($kls->pengampu_mk)'
                       > 
                       <i class="bi bi-pencil"></i>
                   </button>
@@ -109,6 +114,23 @@
                       data-bs-toggle="modal" data-bs-target="#deleteModal"
                       data-id="{{ $kls->id }}" data-nama="{{ $kls->nomor_surat }}">
                       <i class="bi bi-trash"></i>
+                  </button>
+                  <button type="button" class="btn btn-outline-success btn-sm btn-action"
+                      data-bs-toggle="modal" data-bs-target="#actionModal"
+                      data-id="{{ $kls->id }}" data-kelas-id="{{ $kls->kelas_id }}"
+                      data-dosen-id="{{ $kls->dosen_id }}"
+                      data-matakuliah-id="{{ $kls->matakuliah_id }}" data-action="approve"
+                      title="Setujui Tugas">
+                      <i class="bi bi-check-circle"></i>
+                  </button>
+
+                  <button type="button" class="btn btn-outline-danger btn-sm btn-action"
+                      data-bs-toggle="modal" data-bs-target="#actionModal"
+                      data-id="{{ $kls->id }}" data-kelas-id="{{ $kls->kelas_id }}"
+                      data-dosen-id="{{ $kls->dosen_id }}"
+                      data-matakuliah-id="{{ $kls->matakuliah_id }}" data-action="reject"
+                      title="Tolak Tugas">
+                      <i class="bi bi-x-circle"></i>
                   </button>
                 </td>
               </tr>
@@ -173,11 +195,22 @@
             </div>
             <div class="col-md-3">
               <label class="form-label">Kelas</label>
-              <select name="pengampu[0][kelas_id]" class="form-select form-select-sm">
-                  @foreach ($kelas as $item)
-                    <option value="{{ $item->id }}">{{ $item->nama }}</option>
+              <div class="border rounded p-2" style="height: 100px; overflow-y: auto; background-color: #fff;">
+                  @foreach ($kelas as $k)
+                      <div class="form-check">
+                          <input 
+                              class="form-check-input" 
+                              type="checkbox" 
+                              name="pengampu[0][kelas][]" 
+                              value="{{ $k->id }}" 
+                              id="kelas_{{ $k->id }}"
+                          >
+                          <label class="form-check-label" for="kelas_{{ $k->id }}">
+                              {{ $k->nama }}
+                          </label>
+                      </div>
                   @endforeach
-              </select>
+              </div>
             </div>
             <div class="col-md-3">
               <label class="form-label">SKS</label>
@@ -196,15 +229,15 @@
 </div>
 
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <form class="modal-content" id="editForm" action="" method="POST" enctype="multipart/form-data">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" action="/surat" method="POST" enctype="multipart/form-data">
       @csrf
       @method('PUT')
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="editModalLabel">Edit Surat Tugas Mengajar: <span id="edit-name"></span></h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"aria-label="Close"></button>
+        <h5 class="modal-title" id="addRuanganModalLabel">Edit Surat Mengajar</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body row g-1">
         <input type="hidden" name="id" id="edit-id">
         <div class="col-md-4">
           <label class="form-label">Tanggal</label>
@@ -212,15 +245,15 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Nomor SK</label>
-          <input type="text" class="form-control form-control-sm" name="nomor_sk">
+          <input type="text" class="form-control form-control-sm" name="nomor_sk" id="edit-nomor_sk">
         </div>
         <div class="col-md-4">
           <label class="form-label">Nomor Surat</label>
-          <input type="text" class="form-control form-control-sm" name="nomor_surat">
+          <input type="text" class="form-control form-control-sm" name="nomor_surat" id="edit-nomor_surat">
         </div>
         <div class="col-md-6">
           <label class="form-label">Dosen</label>
-          <select name="dosen_id" class="form-select form-select-sm">
+          <select name="dosen_id" class="form-select form-select-sm" id="edit-dosen_id">
               @foreach ($dosen as $item)
                 <option value="{{ $item->id }}">{{ $item->user->biodata->nama }}</option>
               @endforeach
@@ -228,41 +261,19 @@
         </div>
         <div class="col-md-6">
           <label class="form-label">Semester</label>
-          <select name="semester_id" class="form-select form-select-sm">
+          <select name="semester_id" class="form-select form-select-sm" id="edit-semester_id">
               @foreach ($semester as $item)
                 <option value="{{ $item->id }}">{{ $item->jenis }} {{ $item->tahun_akademik }}</option>
               @endforeach
           </select>
         </div>
-        <div class="col-md-12" id="pengampu-row-edit">
-          <div class="modal-body row g-1 pengampu-item border rounded">
-            <div class="col-md-3">
-              <label class="form-label">Matakuliah</label>
-              <select name="pengampu[0][matakuliah_id]" class="form-select form-select-sm">
-                  @foreach ($matakuliah as $item)
-                    <option value="{{ $item->id }}">{{ $item->nama }}</option>
-                  @endforeach
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Kelas</label>
-              <select name="pengampu[0][kelas_id]" class="form-select form-select-sm">
-                  @foreach ($kelas as $item)
-                    <option value="{{ $item->id }}">{{ $item->nama }}</option>
-                  @endforeach
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">SKS</label>
-              <input type="number" class="form-control form-control-sm" name="pengampu[0][sks]">
-            </div>
-          </div>
+        <div class="mt-2 col-md-12" id="pengampu-row-edit">
         </div>
         <button type="button" id="add-pengampu-edit" class="btn btn-success btn-sm">+ Tambah Matakuliah</button>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
       </div>
     </form>
   </div>
@@ -289,8 +300,73 @@
   </div>
 </div>
 
+<div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="pdfModalLabel">Preview PDF</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <iframe id="pdfIframe" style="width: 100%; height: 500px;" frameborder="0"></iframe>
+          </div>
+      </div>
+  </div>
+</div>
+
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div class="modal-dialog"> {{-- Form akan diisi action URL-nya oleh JavaScript --}} <form class="modal-content" method="POST" id="actionForm"> @csrf
+            {{-- Kita akan menggunakan method PUT/PATCH untuk update status --}} @method('PUT') <div class="modal-header text-white" id="actionModalHeader">
+                <h5 class="modal-title" id="actionModalLabel">Konfirmasi Aksi</h5> <button type="button"
+                    class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body"> Apakah Anda yakin ingin <strong id="actionVerb">memproses</strong> surat tugas ini?
+                {{-- Input tersembunyi untuk menyimpan status baru --}} <input type="hidden" name="status" id="actionStatusInput"> <input
+                    type="hidden" name="kelas_id" id="valueKelasId"> <input type="hidden" name="dosen_id"
+                    id="valueDosenId"> <input type="hidden" name="matakuliah_id" id="valueMatakuliahId"> </div>
+            <div class="modal-footer"> <button type="button" class="btn btn-secondary"
+                    data-bs-dismiss="modal">Batal</button> <button type="submit" class="btn"
+                    id="actionConfirmButton">Ya, Proses</button> </div>
+        </form>
+    </div>
+</div>
+
 <script>
+  const availableMatakuliah = @json($matakuliah);
+  const availableKelas = @json($kelas);
+  let upIndex = 0;
   $(document).ready(function() {
+      const pdfButtons = document.querySelectorAll('.btn-cetak-pdf');
+      const pdfView = document.querySelectorAll('.btn-view-pdf');
+      const pdfIframe = document.getElementById('pdfIframe');
+      const pdfModal = new bootstrap.Modal(document.getElementById('pdfModal'));
+
+      pdfButtons.forEach(button => {
+          button.addEventListener('click', function() {
+              const suratId = this.getAttribute('data-surat-id');
+              const pdfUrl = "{{ route('laporan.pdf.generate') }}" +
+                  "?id=" + suratId + "&t=" + new Date().getTime();
+
+              pdfIframe.src = pdfUrl;
+              pdfModal.show();
+          });
+      });
+      pdfView.forEach(button => {
+          button.addEventListener('click', function() {
+              const suratId = this.getAttribute('data-surat-id');
+              const pdfUrl = "{{ route('laporan.pdf.show') }}" +
+                  "?id=" + suratId + "&t=" + new Date().getTime();
+
+              pdfIframe.src = pdfUrl;
+              pdfModal.show();
+          });
+      });
+
+      document.getElementById('pdfModal').addEventListener('hidden.bs.modal', function() {
+          pdfIframe.src = '';
+      });
+
+
       // Tangkap saat tombol edit diklik
       $('.btn-edit').on('click', function() {
           // 1. Ambil data dari data-attributes
@@ -299,10 +375,59 @@
           var nomor_surat = $(this).data('nomor_surat');
           var nomor_sk = $(this).data('nomor_sk');
           var semester_id = $(this).data('semester_id');
-          var pengampu_mk = $(this).data('pengampu_mk');
+          var pengampu = $(this).data('pengampu_mk');
 
           $('#edit-id').val(id);
-          $('#edit-nama').val(nama);
+          $('#edit-tanggal').val(tanggal);
+          $('#edit-nomor_surat').val(nomor_surat);
+          $('#edit-nomor_sk').val(nomor_sk);
+          $('#edit-semester_id').val(semester_id);
+          
+          upIndex = pengampu.length;
+          if (typeof pengampu === 'string') {
+              pengampu = JSON.parse(pengampu);
+          }
+
+          let container = document.getElementById('pengampu-row-edit');
+          let listPengampu = pengampu.map((p,i) => `
+            <div class="modal-body row g-1 pengampu-item border rounded" data-index="${i+1}">
+              <div class="col-md-3">
+                <label class="form-label">Matakuliah</label>
+                <select name="pengampu[${i+1}][matakuliah_id]" class="form-select form-select-sm">
+                  ${availableMatakuliah.map(m => `<option value="${ m.id }" ${m.id == p.matakuliah_id ? 'selected' : ''}>${ m.nama }</option>`).join("")}
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Kelas</label>
+                <div class="border rounded p-2" style="height: 100px; overflow-y: auto; background-color: #fff;">
+                  ${availableKelas.map(m => `
+                    <div class="form-check">
+                      <input  
+                          class="form-check-input" 
+                          type="checkbox" 
+                          name="pengampu[${i+1}][kelas][]" 
+                          value="${m.id}" 
+                          id="kelas_${m.id}"
+                          ${p.kelas.some(k => k.id == m.id) ? 'selected' : ''}
+                      >
+                      <label class="form-check-label" for="kelas_${m.id}">
+                          ${m.nama}
+                      </label>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">SKS</label>
+                <input type="number" class="form-control form-control-sm" name="pengampu[${i+1}][sks]" value="${p.sks}">
+              </div>
+              <div class="col-md-2">
+                  <button type="button" class="btn btn-danger btn-remove btn-sm">Hapus</button>
+              </div>
+            </div>
+          `).join("");
+
+          container.insertAdjacentHTML('beforeend', listPengampu);
 
           $('#editForm').attr('action', '/surat/' + id);
 
@@ -317,9 +442,48 @@
 
           $('#deleteForm').attr('action', '/surat/' + id);
       });
+
+      const actionButtons = document.querySelectorAll('.btn-action');
+      const actionForm = document.getElementById('actionForm');
+      const actionModalLabel = document.getElementById('actionModalLabel');
+      const actionModalHeader = document.getElementById('actionModalHeader');
+      const actionVerb = document.getElementById('actionVerb');
+      const actionStatusInput = document.getElementById('actionStatusInput');
+      const actionConfirmButton = document.getElementById('actionConfirmButton');
+
+      actionButtons.forEach(button => {
+          button.addEventListener('click', function() {
+              const suratId = this.getAttribute('data-id');
+              const action = this.getAttribute('data-action');
+
+              let verb = '';
+              let statusValue = '';
+              let headerClass = '';
+              let buttonText = '';
+
+              if (action === 'approve') {
+                  verb = 'menyetujui';
+                  statusValue = 'APPROVED';
+                  headerClass = 'bg-success';
+                  buttonText = 'Ya, Setujui';
+              } else if (action === 'reject') {
+                  verb = 'menolak';
+                  statusValue = 'REJECTED';
+                  headerClass = 'bg-danger';
+                  buttonText = 'Ya, Tolak';
+              }
+
+              actionModalLabel.textContent = `Konfirmasi ${verb.toUpperCase()}`;
+              actionVerb.textContent = verb;
+              actionModalHeader.className = `modal-header text-white ${headerClass}`;
+              actionConfirmButton.className = `btn ${headerClass}`;
+              actionConfirmButton.textContent = buttonText;
+              actionStatusInput.value = statusValue;
+              actionForm.action = `/surat/${suratId}`;
+          });
+      });
   });
-  const availableMatakuliah = @json($matakuliah);
-  const availableKelas = @json($kelas);
+  
   let roleIndex = 1;
     document.getElementById('add-pengampu').addEventListener('click', function() {
       console.log("clicked")
@@ -334,9 +498,22 @@
             </div>
             <div class="col-md-3">
               <label class="form-label">Kelas</label>
-              <select name="pengampu[${roleIndex}][kelas_id]" class="form-select form-select-sm">
-                  ${availableKelas.map(m => `<option value="${ m.id }">${ m.nama }</option>`).join("")}
-              </select>
+              <div class="border rounded p-2" style="height: 100px; overflow-y: auto; background-color: #fff;">
+                ${availableKelas.map(m => `
+                  <div class="form-check">
+                    <input  
+                        class="form-check-input" 
+                        type="checkbox" 
+                        name="pengampu[${roleIndex}][kelas][]" 
+                        value="${m.id}" 
+                        id="kelas_${m.id}"
+                    >
+                    <label class="form-check-label" for="kelas_${m.id}">
+                        ${m.nama}
+                    </label>
+                  </div>
+                `).join("")}
+              </div>
             </div>
             <div class="col-md-3">
               <label class="form-label">SKS</label>
@@ -349,6 +526,49 @@
             `;
         container.insertAdjacentHTML('beforeend', html);
         roleIndex++;
+    });
+
+    document.getElementById('add-pengampu-edit').addEventListener('click', function() {
+      console.log("clicked")
+        let container = document.getElementById('pengampu-row-edit');
+        let html = `
+          <div class="modal-body row g-1 pengampu-item border rounded" data-index="${upIndex}">
+            <div class="col-md-3">
+              <label class="form-label">Matakuliah</label>
+              <select name="pengampu[${upIndex}][matakuliah_id]" class="form-select form-select-sm">
+                ${availableMatakuliah.map(m => `<option value="${ m.id }">${ m.nama }</option>`).join("")}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Kelas</label>
+              <div class="border rounded p-2" style="height: 100px; overflow-y: auto; background-color: #fff;">
+                ${availableKelas.map(m => `
+                  <div class="form-check">
+                    <input  
+                        class="form-check-input" 
+                        type="checkbox" 
+                        name="pengampu[${upIndex}][kelas][]" 
+                        value="${m.id}" 
+                        id="kelas_${m.id}"
+                    >
+                    <label class="form-check-label" for="kelas_${m.id}">
+                        ${m.nama}
+                    </label>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">SKS</label>
+              <input type="number" class="form-control form-control-sm" name="pengampu[${upIndex}][sks]">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-remove btn-sm">Hapus</button>
+            </div>
+          </div>
+            `;
+        container.insertAdjacentHTML('beforeend', html);
+        upIndex++;
     });
 
     // Delegasi event untuk tombol hapus
