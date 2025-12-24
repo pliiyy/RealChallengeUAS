@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('kode')->unique();
             $table->string('nama');
             $table->unsignedTinyInteger('sks');
+            $table->foreignId('prodi_id')->constrained("prodi")->cascadeOnDelete();
             $table->enum('status',['AKTIF','NONAKTIF'])->default('AKTIF');
             $table->timestamps();
         });

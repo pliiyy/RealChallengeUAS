@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Matakuliah;
+use App\Models\Prodi;
 use Illuminate\Http\Request;
 
 class MatakuliahController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Matakuliah::query();
+        $query = Matakuliah::with(['prodi']);
 
         if ($request->filled('search')) {
             $query->where('nama', 'like', '%'.$request->search.'%')->orWhere('kode', 'like', '%'.$request->search.'%')->orWhere('semester', 'like', '%'.$request->search.'%');
@@ -26,8 +27,9 @@ class MatakuliahController extends Controller
 
         // Biar query string tetap terbawa saat paginate link
         $matakuliah->appends($request->all());
+        $prodi = Prodi::where("status","AKTIF")->get();
 
-        return view('matakuliah', compact('matakuliah'));
+        return view('matakuliah', compact('matakuliah','prodi'));
     }
 
     public function store(Request $request)
@@ -36,6 +38,7 @@ class MatakuliahController extends Controller
         'nama' => 'required|string|max:255',
         'kode' => 'required|string|max:255',
         'sks' => 'required',
+        'prodi_id' => 'required',
         ]);
 
         $validated["status"] = "AKTIF";
@@ -50,6 +53,7 @@ class MatakuliahController extends Controller
         $validated = $request->validate([
         'nama' => 'required|string|max:255',
         'kode' => 'required|string|max:255',
+        'prodi_id' => 'required',
         'sks' => 'required',
         ]);
 

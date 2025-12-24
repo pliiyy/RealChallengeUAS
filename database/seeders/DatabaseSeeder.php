@@ -48,7 +48,7 @@ class DatabaseSeeder extends Seeder
         ]);
         $roleDekan = Role::where('nama', 'dekan')->first();
 
-        $user->roles()->syncWithoutDetaching([$roleDekan->id]);
+        $user->role()->syncWithoutDetaching([$roleDekan->id]);
 
         // 4️⃣ Model Dekan
         Dekan::firstOrCreate([

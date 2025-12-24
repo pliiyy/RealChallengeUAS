@@ -83,7 +83,7 @@
                                 </div>
                             @endif
 
-                            <form method="POST" >
+                            <form method="POST" action="/login">
                                 @csrf
                                 @method('POST')
                                 <div class="mb-3">

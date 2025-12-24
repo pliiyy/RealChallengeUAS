@@ -9,6 +9,11 @@ class Kaprodi extends Model
     protected $table = 'kaprodi';
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'periode_mulai' => 'datetime',
+        'periode_selesai' => 'datetime',
+    ];
+
     public function User()
     {
         return $this->belongsTo(User::class,'user_id');

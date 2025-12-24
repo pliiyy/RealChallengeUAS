@@ -39,7 +39,12 @@
             @foreach ($matakuliah as $index => $kls)
               <tr>
                 <td>{{ $matakuliah->firstItem() + $index }}</td>
-                <td>{{ $kls->nama }}</td>
+                <td>
+                  <div class="flex flex-col">
+                    <span>{{ $kls->nama }}</span>
+                    <span class="opacity-70 text-xs italic" style="opacity:80px;font-size:12px;font-style: italic">{{ $kls->prodi->nama }}</span>
+                  </div>
+                </td>
                 <td>{{ $kls->kode }}</td>
                 <td>{{ $kls->sks }}</td>
                 <td>
@@ -56,6 +61,7 @@
                       data-nama="{{ $kls->nama }}"
                       data-kode="{{ $kls->kode }}"
                       data-sks="{{ $kls->sks }}"
+                      data-prodi_id="{{ $kls->prodi_id }}"
                       > 
                       <i class="bi bi-pencil"></i>
                   </button>
@@ -99,6 +105,14 @@
           <label class="form-label">SKS</label>
           <input type="number" class="form-control" placeholder="Contoh: 1" name="sks">
         </div>
+        <div class="mb-3">
+          <label class="form-label">Program Studi</label>
+          <select name="prodi_id" class="form-select">
+              @foreach ($prodi as $item)
+                <option value="{{ $item->id }}">{{ $item->nama }}</option>
+              @endforeach
+          </select>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -130,6 +144,14 @@
         <div class="mb-3">
           <label class="form-label">SKS</label>
           <input type="number" class="form-control" name="semester" id="edit-sks">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Program Studi</label>
+          <select name="prodi_id" class="form-select" id="edit-prodi_id">
+              @foreach ($prodi as $item)
+                <option value="{{ $item->id }}">{{ $item->nama }}</option>
+              @endforeach
+          </select>
         </div>
       </div>
       <div class="modal-footer">
@@ -170,11 +192,13 @@
           var nama = $(this).data('nama');
           var kode = $(this).data('kode');
           var sks = $(this).data('sks');
+          var prodi_id = $(this).data('prodi_id');
 
           $('#edit-id').val(id);
           $('#edit-nama').val(nama);
           $('#edit-kode').val(kode);
           $('#edit-sks').val(sks);
+          $('#edit-prodi_id').val(prodi_id);
 
           $('#editForm').attr('action', '/matakuliah/' + id);
 

@@ -103,7 +103,7 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Tahun Akademik</label>
-          <input type="text" class="form-control" placeholder="Contoh: 20251" name="tahun_akademik">
+          <input type="text" class="form-control" placeholder="Contoh: 2025/2026" name="tahun_akademik">
         </div>
         <div class="mb-3">
           <label class="form-label">Periode Mulai</label>

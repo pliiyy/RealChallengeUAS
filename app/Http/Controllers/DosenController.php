@@ -3,21 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Biodata;
-use App\Models\Dekan;
-use App\Models\Fakultas;
+use App\Models\Dosen;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
-class DekanController extends Controller
+class DosenController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Dekan::with(['user.biodata', 'fakultas']);
+        $query = Dosen::with(['user.biodata']);
 
         if ($request->filled('search')) {
             $query->whereHas('user', function ($q) use ($request) {
@@ -34,15 +31,14 @@ class DekanController extends Controller
         }
 
         // Pagination, misal 10 data per halaman
-        $dekan = $query->orderBy('id', 'desc')->paginate(10);
+        $dosen = $query->orderBy('id', 'desc')->paginate(10);
 
         // Biar query string tetap terbawa saat paginate link
-        $dekan->appends($request->all());
-        $fakultas = Fakultas::where("status","=","AKTIF")->get();
+        $dosen->appends($request->all());
         $users = User::whereDoesntHave('role', function ($query) {
-            $query->where('nama', 'dekan');
+            $query->where('nama', 'dosen');
         })->get();
-        return view('dekan', compact('dekan','fakultas','users'));
+        return view('dosen', compact('dosen','users'));
     }
 
     public function store(Request $request)
@@ -52,12 +48,7 @@ class DekanController extends Controller
                 'nullable', 
                 Rule::exists('user', 'id'),
             ],
-            'exs_periode_mulai' => ['nullable'],
-            'exs_periode_selesai' => ['nullable'],
-            'exs_fakultas_id' => ['nullable'],
-            'periode_mulai' => ['nullable'],
-            'periode_selesai' => ['nullable'],
-            'fakultas_id' => ['nullable'],
+            'nidn' => ['required','string', 'unique:dosen,nidn'],
             'user_name' => [
                 Rule::requiredIf(is_null($request->user_id)), // Wajib jika user_id kosong
                 'string', 
@@ -150,19 +141,17 @@ class DekanController extends Controller
             if (!$dUser) {
                 throw new \Exception("Gagal menemukan atau membuat data User.");
             }
-            $roleDekan = Role::where('nama','dekan')->first();
+            $roleDekan = Role::where('nama','dosen')->first();
             $dUser->role()->attach($roleDekan->id);
             
-            Dekan::create([
+            Dosen::create([
                     "user_id" => $dUser->id,
-                    "periode_mulai" => empty($validatedData['user_id']) ? $validatedData['periode_mulai'] : $validatedData['exs_periode_mulai'],
-                    "periode_selesai" => empty($validatedData['user_id'])?$validatedData['periode_selesai']:$validatedData['exs_periode_selesai'],
-                    "fakultas_id" => empty($validatedData['user_id'])?$validatedData['fakultas_id']:$validatedData['exs_fakultas_id'],
+                    "nidn" => $validatedData['nidn'],
                 ]);
 
             DB::commit();
 
-            $message = 'User dekan berhasil dtambahkan!';
+            $message = 'User Dosen berhasil dtambahkan!';
             
             return redirect('/dosen')->with('success', $message);
 
@@ -172,76 +161,58 @@ class DekanController extends Controller
             
             return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data Dosen. ' . $e->getMessage());
         }
-        return redirect('/dekan')->with('success', 'Dekan berhasil ditambahkan!');
+        return redirect('/dosen')->with('success', 'Dosen berhasil ditambahkan!');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request,  $id)
     {
-        $dekan = Dekan::findOrFail($id);
-        $user = $dekan->user;
-        $biodata = $dekan->user->biodata;
-
-        $request->validate([
-            'nama'        => 'required',
-            'jenis_kelamin'        => 'nullable',
-            'agama'        => 'nullable',
-            'tempat_lahir'        => 'nullable',
-            'tanggal_lahir'        => 'nullable',
-            'alamat'        => 'nullable',
-            'kelurahan'        => 'nullable',
-            'kec_id'        => 'nullable',
-            'kab_id'        => 'nullable',
-            'prov_id'        => 'nullable',
-            'kodepos'        => 'nullable',
-            'email'       => 'required|email|unique:user,email,'.$id,
-            'password'    => 'nullable',
-            'fakultas_id' => 'required|exists:fakultas,id',
-            'foto_profil'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+        $d = Dosen::with(['user.biodata'])->findOrFail($id);
+        
+        $validated = $request->validate([
+        'user_name' => ['string', 'max:255'],
+        'user_email' => ['email', 'unique:user,email,'.$d->user->id],
+        'jenis_kelamin' => ['string', 'max:1'],
+        'agama' => ['string'],
+        'tempat_lahir' => ['string'],
+        'tanggal_lahir' => ['string'],
+        'alamat' => ['string'],
+        'kelurahan' => ['string'],
+        'kec_id' => ['string'],
+        'kab_id' => ['string'],
+        'prov_id' => ['string'],
+        'nidn' => ['string', 'unique:dosen,nidn,'.$id],
         ]);
 
-        // update password jika diisi
-        if ($request->filled('password')) {
-            $request['password'] = Hash::make($request->password);
-        }else{
-            $request['password'] = $user->password;
-        }
-        if ($request->hasFile('foto_profil')) {
-            // hapus foto lama
-            if ($biodata->foto_profil && Storage::disk('public')->exists($biodata->foto_profil)) {
-                Storage::disk('public')->delete($biodata->foto_profil);
-            }
+        $user = User::findOrFail($d->user->id);
+        $biodata = Biodata::findOrFail($d->user->biodata->id);
 
-            $photoPath = $request->file('foto_profil')
-                ->store('profil', 'public');
+        $user->update([
+            'email' => $validated['user_email'],
+            'status'=>'AKTIF'
+        ]);
+        $biodata->update([
+        'nama' => $validated['user_name'],
+        'jenis_kelamin' => $validated['jenis_kelamin'],
+        'tempat_lahir' => $validated['tempat_lahir'],
+        'tanggal_lahir' => $validated['tanggal_lahir'],
+        'agama' => $validated['agama'],
+        'alamat' => $validated['alamat'],
+        'kelurahan' => $validated['kelurahan'],
+        'kec_id' => $validated['kec_id'],
+        'kab_id' => $validated['kab_id'],
+        'prov_id' => $validated['prov_id'],
+        'user_id' => $d->user_id,
+    ]);
 
-            $biodata->foto_profil = $photoPath;
-        }
-        $user->email = $request->email;
-        $user->password = $request->password;
-        $user->update();
-
-        $biodata->jenis_kelamin = $request->jenis_kelamin;
-        $biodata->agama = $request->agama;
-        $biodata->tempat_lahir = $request->tempat_lahir;
-        $biodata->tanggal_lahir = $request->tanggal_lahir;
-        $biodata->alamat = $request->alamat;
-        $biodata->kelurahan = $request->kelurahan;
-        $biodata->kec_id = $request->kec_id;
-        $biodata->kab_id = $request->kab_id;
-        $biodata->prov_id = $request->prov_id;
-        $biodata->kodepos = $request->kodepos;
-        $biodata->update();
-
-        $dekan->fakultas_id = $request->fakultas_id;
-        $dekan->update();
+        return redirect('/dosen')->with('success', 'Dosen berhasil diperbarui!');
     }
 
     public function destroy( $id)
     {
-        $dekan = Dekan::findOrFail($id);
-        $dekan->status = "NONAKTIF";
-        $dekan->update();
+        $d = Dosen::findOrFail($id);
+        $dName = $d->user->biodata->nama;
+        $d->delete();
 
-        return redirect('/dekan')->with('success', 'dekan ' . $dekan->nama . ' berhasil dihapus!');
+        return redirect('/dosen')->with('success', 'Dosen '.$dName.' berhasil dihapus!');
     }
 }

@@ -58,17 +58,16 @@
             @foreach ($kelas as $index => $kls)
               <tr>
                 <td>{{ $kelas->firstItem() + $index }}</td>
-                <td><span class="badge bg-info">{{ $kls->fakultas->nama }}</span></td>
                 <td class="flex flex-col">
                   <span>{{ $kls->nama }}</span>
-                  <span class="opacity-70">{{ $kls->kode }}</span>
+                  <span class="opacity-70" style="font-style:italic">{{ $kls->kode }}</span>
                 </td>
                 <td>{{ $kls->angkatan->tahun }}</td>
                 <td class="flex flex-col">
-                  <span>{{ $kls->prodi->nama }}</span>
-                  <span class="opacity-70">smstr {{ $kls->semester }}</span>
+                  <span class="badge bg-info">{{ $kls->prodi->nama }}</span>
+                  <span class="opacity-70" style="font-style:italic">semester {{ $kls->semester }}</span>
                 </td>
-                <td>{{ $kl->kapasitas }}</td>
+                <td>{{ $kls->kapasitas }} Orang</td>
                 <td>
                   @if ($kls->tipe == 'R')
                       <span class="badge bg-info">{{ $kls->tipe }}</span>
@@ -107,7 +106,7 @@
           </tbody>
         </table>
         <div class="mt-3">
-            {{ $prodi->links() }}
+            {{ $kelas->links() }}
         </div>
       </div>
     </div>

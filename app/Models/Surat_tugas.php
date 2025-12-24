@@ -20,6 +20,10 @@ class Surat_tugas extends Model
     {
         return $this->belongsTo(Dosen::class,'dosen_id');
     }
+    public function Semester()
+    {
+        return $this->belongsTo(Semester::class,'semester_id');
+    }
     public function Pengampu_mk()
     {
         return $this->hasMany(Pengampu_mk::class);

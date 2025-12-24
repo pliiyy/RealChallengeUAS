@@ -8,16 +8,16 @@
       <span>📄 Surat Tugas Mengajar</span>
       <button class="btn btn-light btn-sm text-primary fw-semibold" data-bs-toggle="modal"
           data-bs-target="#addModal">
-        <i class="bi bi-plus-circle"></i> Tambah User
+        <i class="bi bi-plus-circle"></i> Tambah
       </button>
       <form action="/surat" method="GET" class="d-flex gap-2 align-items-center">
           <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari ..."
               value="{{ request('search') }}">
 
           <select name="user_id" class="form-select form-select-sm">
-            <option >by dekan/dosen ...</option>
-              @foreach ($user as $r)
-                <option value="{{ $r->id }}" {{ request('user_id') == $r->id ? 'selected' : '' }}>{{ $r->biodata->nama }}</option>
+            <option >by dosen ...</option>
+              @foreach ($dosen as $r)
+                <option value="{{ $r->id }}" {{ request('dosen_id') == $r->id ? 'selected' : '' }}>{{ $r->user->biodata->nama }}</option>
               @endforeach
           </select>
 
@@ -52,37 +52,37 @@
                 <td>{{ $surat->firstItem() + $index }}</td>
                 <td >
                   <div class="flex flex-col">
-                    <span>{{ $kls->dekan->biodata->nama }}</span>
-                    <span class="italic opacity-70">{{ "@" }}dekan</span>
+                    <span>{{ $kls->dekan->user->biodata->nama }}</span>
+                    <span class="italic opacity-70" style="font-style:italic;color:#888">{{ "@" }}dekan</span>
                   </div>
                 </td>
-                <td >
+                <td > 
                   <div class="flex flex-col">
-                    <span>{{ $kls->donsen->biodata->nama }}</span>
-                    <span class="italic opacity-70">{{ "@" }}dosen</span>
+                    <span>{{ $kls->dosen->user->biodata->nama }}</span>
+                    <span class="italic opacity-70" style="font-style:italic;color:#888">{{ "@" }}dosen</span>
                   </div>
                 </td>
                 <td >
                   <div class="flex flex-col">
                     <span>SK: {{ $kls->nomor_sk }}</span>
-                    <span class="italic opacity-70">Surat: {{ $kls->nomor_surat }}</span>
+                    <span class="italic opacity-70" style="font-style:italic;color:#888">Surat: {{ $kls->nomor_surat }}</span>
                   </div>
                 </td>
                 <td >
                   <div class="flex flex-col">
                     <span>{{ $kls->tanggal->format('d/m/Y') }}</span>
-                    <span class="italic opacity-70">Semester {{ $kls->semester->jenis }} {{ $kls->semester->tahun_akademik }}</span>
+                    <span class="italic opacity-70" style="font-style:italic;color:#888">Semester {{ $kls->semester->jenis }} {{ $kls->semester->tahun_akademik }}</span>
                   </div>
                 </td>
                 <td>
                   <div class="flex gap-2 items-center justify-center">
-                    <button type="button" class="btn btn-sm btn-info btn-tampilkan-pdf"
+                    <button type="button" class="btn btn-sm btn-info btn-cetak-pdf"
                         title="Lihat PDF" data-surat-id="{{ $kls->id }}">
-                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                       <i class="bi bi-printer-fill"></i></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-info btn-tampilkan-pdf"
                         title="Lihat PDF" data-surat-id="{{ $kls->id }}">
-                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                        <i class="bi bi-file-earmark"></i>
                     </button>
                   </div>
                 </td>
@@ -125,55 +125,67 @@
 
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <form class="modal-content" action="/user" method="POST" enctype="multipart/form-data">
+    <form class="modal-content" action="/surat" method="POST" enctype="multipart/form-data">
       @csrf
       @method('POST')
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="addRuanganModalLabel">Tambah User</h5>
+        <h5 class="modal-title" id="addRuanganModalLabel">Tambah Surat Mengajar</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Nama lengkap</label>
-          <input type="text" class="form-control form-control-sm" name="nama">
+      <div class="modal-body row g-1">
+        <div class="col-md-4">
+          <label class="form-label">Tanggal</label>
+          <input type="date" class="form-control form-control-sm" name="tanggal">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Nomor SK</label>
+          <input type="text" class="form-control form-control-sm" name="nomor_sk">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Nomor Surat</label>
+          <input type="text" class="form-control form-control-sm" name="nomor_surat">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Email</label>
-          <input type="text" class="form-control form-control-sm"  name="email">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Password</label>
-          <input type="password" class="form-control form-control-sm" name="password">
-        </div>
-        <div class="col-md-6">
-          <label for="jenis_kelamin" class="form-label">Jenis Kelamin:</label>
-          <select name="jenis_kelamin" id="jenis_kelamin"
-              class="form-select form-select-sm @error('jenis_kelamin') is-invalid @enderror">
-              <option value="">-- Pilih JK --</option>
-              <option value="L">Laki - Laki</option>
-              <option value="P">Perempuan</option>
+          <label class="form-label">Dosen</label>
+          <select name="dosen_id" class="form-select form-select-sm">
+              @foreach ($dosen as $item)
+                <option value="{{ $item->id }}">{{ $item->user->biodata->nama }}</option>
+              @endforeach
           </select>
         </div>
         <div class="col-md-6">
-          <label for="agama" class="form-label">Agama:</label>
-          <select name="agama" id="agama"
-              class="form-select form-select-sm @error('agama') is-invalid @enderror">
-              <option value="">-- Pilih Agama --</option>
-              <option value="ISLAM">ISLAM</option>
-              <option value="HINDU">HINDU</option>
-              <option value="BUDHA">BUDHA</option>
-              <option value="PROTESTAN">PROTESTAN</option>
-              <option value="KATOLIK">KATOLIK</option>
-              <option value="KONGHUCU">KONGHUCU</option>
+          <label class="form-label">Semester</label>
+          <select name="semester_id" class="form-select form-select-sm">
+              @foreach ($semester as $item)
+                <option value="{{ $item->id }}">{{ $item->jenis }} {{ $item->tahun_akademik }}</option>
+              @endforeach
           </select>
-          @error('agama')
-              <div class="invalid-feedback">{{ $message }}</div>
-          @enderror
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Alamat</label>
-          <textarea type="textarea" class="form-control form-control-sm" name="alamat"></textarea>
+        <div class="mt-2 col-md-12" id="pengampu-row">
+          <div class="modal-body row g-1 pengampu-item border rounded">
+            <div class="col-md-3">
+              <label class="form-label">Matakuliah</label>
+              <select name="pengampu[0][matakuliah_id]" class="form-select form-select-sm">
+                  @foreach ($matakuliah as $item)
+                    <option value="{{ $item->id }}">{{ $item->nama }}</option>
+                  @endforeach
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Kelas</label>
+              <select name="pengampu[0][kelas_id]" class="form-select form-select-sm">
+                  @foreach ($kelas as $item)
+                    <option value="{{ $item->id }}">{{ $item->nama }}</option>
+                  @endforeach
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">SKS</label>
+              <input type="number" class="form-control form-control-sm" name="pengampu[0][sks]">
+            </div>
+          </div>
         </div>
+        <button type="button" id="add-pengampu" class="btn btn-success btn-sm">+ Tambah Matakuliah</button>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -189,23 +201,64 @@
       @csrf
       @method('PUT')
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="editModalLabel">Edit User: <span id="edit-name"></span></h5>
+        <h5 class="modal-title" id="editModalLabel">Edit Surat Tugas Mengajar: <span id="edit-name"></span></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" name="id" id="edit-id">
-        <div class="mb-3">
-          <label for="edit-nama" class="form-label">Nama Ruangan</label>
-          <input type="text" class="form-control" id="edit-nama" name="nama" required />
+        <div class="col-md-4">
+          <label class="form-label">Tanggal</label>
+          <input type="date" class="form-control form-control-sm" name="tanggal" id="edit-tanggal">
         </div>
-        <div class="mb-3">
-          <label for="edit-nama" class="form-label">Nama Ruangan</label>
-          <input type="text" class="form-control" id="edit-kode" name="kode" required />
+        <div class="col-md-4">
+          <label class="form-label">Nomor SK</label>
+          <input type="text" class="form-control form-control-sm" name="nomor_sk">
         </div>
-        <div class="mb-3">
-          <label for="edit-kapasitas" class="form-label">Kapasitas</label>
-          <input class="form-control" id="edit-kapasitas" name="kapasitas"></textarea>
+        <div class="col-md-4">
+          <label class="form-label">Nomor Surat</label>
+          <input type="text" class="form-control form-control-sm" name="nomor_surat">
         </div>
+        <div class="col-md-6">
+          <label class="form-label">Dosen</label>
+          <select name="dosen_id" class="form-select form-select-sm">
+              @foreach ($dosen as $item)
+                <option value="{{ $item->id }}">{{ $item->user->biodata->nama }}</option>
+              @endforeach
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Semester</label>
+          <select name="semester_id" class="form-select form-select-sm">
+              @foreach ($semester as $item)
+                <option value="{{ $item->id }}">{{ $item->jenis }} {{ $item->tahun_akademik }}</option>
+              @endforeach
+          </select>
+        </div>
+        <div class="col-md-12" id="pengampu-row-edit">
+          <div class="modal-body row g-1 pengampu-item border rounded">
+            <div class="col-md-3">
+              <label class="form-label">Matakuliah</label>
+              <select name="pengampu[0][matakuliah_id]" class="form-select form-select-sm">
+                  @foreach ($matakuliah as $item)
+                    <option value="{{ $item->id }}">{{ $item->nama }}</option>
+                  @endforeach
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Kelas</label>
+              <select name="pengampu[0][kelas_id]" class="form-select form-select-sm">
+                  @foreach ($kelas as $item)
+                    <option value="{{ $item->id }}">{{ $item->nama }}</option>
+                  @endforeach
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">SKS</label>
+              <input type="number" class="form-control form-control-sm" name="pengampu[0][sks]">
+            </div>
+          </div>
+        </div>
+        <button type="button" id="add-pengampu-edit" class="btn btn-success btn-sm">+ Tambah Matakuliah</button>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -242,12 +295,16 @@
       $('.btn-edit').on('click', function() {
           // 1. Ambil data dari data-attributes
           var id = $(this).data('id');
-          var nama = $(this).data('nama');
+          var tanggal = $(this).data('tanggal');
+          var nomor_surat = $(this).data('nomor_surat');
+          var nomor_sk = $(this).data('nomor_sk');
+          var semester_id = $(this).data('semester_id');
+          var pengampu_mk = $(this).data('pengampu_mk');
 
           $('#edit-id').val(id);
           $('#edit-nama').val(nama);
 
-          $('#editForm').attr('action', '/user/' + id);
+          $('#editForm').attr('action', '/surat/' + id);
 
 
       });
@@ -258,8 +315,47 @@
           $('#delete-id').val(id);
           $('#delete-name').text(nama);
 
-          $('#deleteForm').attr('action', '/user/' + id);
+          $('#deleteForm').attr('action', '/surat/' + id);
       });
   });
+  const availableMatakuliah = @json($matakuliah);
+  const availableKelas = @json($kelas);
+  let roleIndex = 1;
+    document.getElementById('add-pengampu').addEventListener('click', function() {
+      console.log("clicked")
+        let container = document.getElementById('pengampu-row');
+        let html = `
+          <div class="modal-body row g-1 pengampu-item border rounded" data-index="${roleIndex}">
+            <div class="col-md-3">
+              <label class="form-label">Matakuliah</label>
+              <select name="pengampu[${roleIndex}][matakuliah_id]" class="form-select form-select-sm">
+                ${availableMatakuliah.map(m => `<option value="${ m.id }">${ m.nama }</option>`).join("")}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Kelas</label>
+              <select name="pengampu[${roleIndex}][kelas_id]" class="form-select form-select-sm">
+                  ${availableKelas.map(m => `<option value="${ m.id }">${ m.nama }</option>`).join("")}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">SKS</label>
+              <input type="number" class="form-control form-control-sm" name="pengampu[${roleIndex}][sks]">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-remove btn-sm">Hapus</button>
+            </div>
+          </div>
+            `;
+        container.insertAdjacentHTML('beforeend', html);
+        roleIndex++;
+    });
+
+    // Delegasi event untuk tombol hapus
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('btn-remove')) {
+            e.target.closest('.pengampu-item').remove();
+        }
+    });
 </script>
 @endsection

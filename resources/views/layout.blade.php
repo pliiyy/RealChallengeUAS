@@ -211,7 +211,7 @@
 
                     <!-- Data Master (Nested Menu) -->
                     <a href="/user" class="nav-link"><i class="bi bi-person-lines-fill me-2"></i> Data Pengguna</a>
-                    {{-- <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
+                    <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
                         href="#dataMaster" role="button" aria-expanded="false" aria-controls="dataMaster">
                         <span><i class="bi bi-folder2-open me-2"></i> Manage User</span>
                         <i class="bi bi-chevron-down small"></i>
@@ -223,7 +223,7 @@
                         <a href="/sekprodi" class="nav-link"><i class="bi bi-person-lines-fill me-2"></i> Sekprodi</a>
                         <a href="/mahasiswa" class="nav-link"><i class="bi bi-person-lines-fill me-2"></i> Mahasiswa</a>
                         <a href="/kosma" class="nav-link"><i class="bi bi-person-lines-fill me-2"></i> Kosma</a>
-                    </div> --}}
+                    </div>
                     <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
                         href="#dataJadwal" role="button" aria-expanded="false" aria-controls="dataJadwal">
                         <span><i class="bi bi-folder2-open me-2"></i> Master Data</span>
