@@ -188,7 +188,7 @@
                             <td style="padding: 8px;">{{ $kls->matakuliah->nama }}</td>
                             <td style="padding: 8px; text-align: center;">{{ $kls->sks }}</td>
                             <td style="padding: 8px; text-align: center;">{{ $kls->matakuliah->prodi->jenjang }} {{ $kls->matakuliah->prodi->kode }}</td>
-                            <td style="padding: 8px; text-align: center;">{{ $surat->semester->nama }}</td>
+                            <td style="padding: 8px; text-align: center;">{{ $surat->semester->semester }}</td>
                             <td style="padding: 8px; text-align: center;">{{ $kls->kelas->pluck('tipe')->unique()->implode('/') }}</td>
                             <td style="padding: 8px; text-align: center;">{{ count($kls->kelas) }}</td>
                             <td style="padding: 8px; text-align: center;">{{ count($kls->kelas) * $kls->sks }}</td>

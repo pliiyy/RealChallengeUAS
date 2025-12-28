@@ -71,7 +71,7 @@
                 <td >
                   <div class="flex flex-col">
                     <span>{{ $kls->tanggal->format('d/m/Y') }}</span>
-                    <span class="italic opacity-70" style="font-style:italic;color:#888">Semester {{ $kls->semester->jenis }} {{ $kls->semester->tahun_akademik }}</span>
+                    <span class="italic opacity-70" style="font-style:italic;color:#888">Semester {{ $kls->semester->semester }} {{ $kls->semester->jenis }} {{ $kls->semester->tahun_akademik }}</span>
                   </div>
                 </td>
                 <td>

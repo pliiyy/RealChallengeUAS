@@ -38,7 +38,7 @@ class SemesterController extends Controller
     {
         $validated = $request->validate([
         'jenis' => 'required|string|max:255',
-        'nama' => 'required',
+        'semester' => 'required',
         'tahun_akademik' => 'required',
         'tanggal_mulai' => 'required',
         'tanggal_selesai' => 'required',
@@ -54,7 +54,7 @@ class SemesterController extends Controller
         
         $validated = $request->validate([
         'jenis' => 'required|string|max:255',
-        'nama' => 'required',
+        'semester' => 'required',
         'tahun_akademik' => 'required',
         'tanggal_mulai' => 'required',
         'tanggal_selesai' => 'required',
