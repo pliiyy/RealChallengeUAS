@@ -17,4 +17,8 @@ class Semester extends Model
     {
         return $this->hasMany(Surat_tugas::class);
     }
+    public function Kelas()
+    {
+        return $this->hasMany(Kelas::class);
+    }
 }

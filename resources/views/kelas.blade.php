@@ -46,7 +46,6 @@
             <tr>
               <th>#</th>
               <th>Kelas</th>
-              <th>Angkatan</th>
               <th>Program Studi</th>
               <th>Kapasitas</th>
               <th>Tipe</th>
@@ -58,14 +57,17 @@
             @foreach ($kelas as $index => $kls)
               <tr>
                 <td>{{ $kelas->firstItem() + $index }}</td>
-                <td class="flex flex-col">
-                  <span>{{ $kls->nama }}</span>
-                  <span class="opacity-70" style="font-style:italic">{{ $kls->kode }}</span>
+                <td >
+                  <div class="flex flex-col">
+                    <span>{{ $kls->nama }}</span>
+                    <span class="opacity-70" style="font-style:italic;color:#aaa;">{{ $kls->angkatan->tahun }}</span>
+                  </div>
                 </td>
-                <td>{{ $kls->angkatan->tahun }}</td>
-                <td class="flex flex-col">
-                  <span class="badge bg-info">{{ $kls->prodi->nama }}</span>
-                  <span class="opacity-70" style="font-style:italic">semester {{ $kls->semester }}</span>
+                <td >
+                  <div class="flex flex-col">
+                    <span class="badge bg-info">{{ $kls->prodi->nama }}</span>
+                    <span class="opacity-70" style="font-style:italic;color:#aaa;">semester {{ $kls->semester->semester }}</span>
+                  </div>
                 </td>
                 <td>{{ $kls->kapasitas }} Orang</td>
                 <td>
@@ -90,7 +92,7 @@
                       data-kode="{{ $kls->kode }}"
                       data-angkatan_id="{{ $kls->angkatan_id }}"
                       data-prodi_id="{{ $kls->prodi_id }}"
-                      data-semester="{{ $kls->semester }}"
+                      data-semester_id="{{ $kls->semester_id }}"
                       data-tipe="{{ $kls->tipe }}"
                       > 
                       <i class="bi bi-pencil"></i>
@@ -133,7 +135,11 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Semester</label>
-          <input type="text" class="form-control" placeholder="Contoh: 1" name="semester">
+          <select name="semester_id" class="form-select">
+              @foreach ($semester as $item)
+                <option value="{{ $item->id }}">{{ $item->nama }} ({{ $item->tahun_akademik }})</option>
+              @endforeach
+          </select>
         </div>
         <div class="mb-3">
           <label class="form-label">Program Studi</label>
@@ -188,7 +194,11 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Semester</label>
-          <input type="text" class="form-control" placeholder="Contoh: 1" name="semester" id="edit-semester">
+          <select name="semester_id" class="form-select" id="edit-semester_id">
+              @foreach ($semester as $item)
+                <option value="{{ $item->id }}">{{ $item->nama }} ({{ $item->tahun_akademik }})</option>
+              @endforeach
+          </select>
         </div>
         <div class="mb-3">
           <label class="form-label">Program Studi</label>
@@ -253,7 +263,7 @@
           var kode = $(this).data('kode');
           var angkatan_id = $(this).data('angkatan_id');
           var prodi_id = $(this).data('prodi_id');
-          var semester = $(this).data('semester');
+          var semester_id = $(this).data('semester_id');
           var tipe = $(this).data('tipe');
 
           $('#edit-id').val(id);
@@ -261,7 +271,7 @@
           $('#edit-kode').val(kode);
           $('#edit-angkatan_id').val(angkatan_id);
           $('#edit-prodi_id').val(prodi_id);
-          $('#edit-semester').val(semester);
+          $('#edit-semester_id').val(semester_id);
           $('#edit-tipe').val(tipe);
 
           $('#editForm').attr('action', '/kelas/' + id);

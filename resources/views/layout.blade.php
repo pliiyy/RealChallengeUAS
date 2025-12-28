@@ -190,7 +190,7 @@
             <span class="navbar-brand">BEVARARI</span>
             <div class="d-flex align-items-center gap-3">
                 <span class="text-white small">Halo, {{ auth()->user()->biodata->nama ?? 'Admin' }} 👋</span>
-                <form method="POST" >
+                <form method="POST" action="/logout">
                     @csrf
                     @method('POST')
                     <button type="submit" class="btn btn-sm btn-outline-light">Keluar</button>
@@ -205,7 +205,7 @@
             <div class="col-lg-2 col-md-3 p-3 sidebar border-end">
                 <nav class="nav flex-column">
                     <!-- Dashboard -->
-                    <a href="/dashboard" class="nav-link">
+                    <a href="/" class="nav-link">
                         <i class="bi bi-speedometer2 me-2"></i> Dashboard
                     </a>
 
@@ -244,8 +244,8 @@
                         <a href="/ruangan" class="nav-link"><i class="bi bi-door-closed me-2"></i> Ruangan</a>
                         <a href="/shift" class="nav-link"><i class="bi bi-person-lines-fill me-2"></i> Shift</a>
                     </div>
-                    <a href="/jadwal" class="nav-link"><i class="bi bi-clock-history me-2"></i>Buat Jadwal</a>
-                    <a href="/jadwal_global" class="nav-link"><i class="bi bi-clock-history me-2"></i>Jadwal</a>
+                    {{-- <a href="/jadwal" class="nav-link"><i class="bi bi-clock-history me-2"></i>Buat Jadwal</a> --}}
+                    <a href="/jadwal" class="nav-link"><i class="bi bi-clock-history me-2"></i>Jadwal</a>
                     <a href="/pindah_jadwal" class="nav-link"><i class="bi bi-clock-history me-2"></i> Pindah Jadwal</a>
                     <a href="/barter_jadwal" class="nav-link"><i class="bi bi-gear me-2"></i> Barter Jadwal</a>
                     <a href="/surat" class="nav-link"><i class="bi bi-gear me-2"></i> Surat Tugas</a>

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('email')->unique();
             $table->string('password');
+            $table->enum('status',["AKTIF","NONAKTIF"])->default("AKTIF");
             $table->rememberToken();
             $table->timestamps();
         });

@@ -15,9 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('prodi_id')->constrained("prodi")->cascadeOnDelete();
             $table->foreignId('angkatan_id')->constrained("angkatan")->cascadeOnDelete();
-            $table->string('kode');
             $table->string('nama');
-            $table->unsignedTinyInteger('semester');
+            $table->foreignId('semester_id')->constrained("semester")->cascadeOnDelete();
             $table->unsignedSmallInteger('kapasitas')->default(40);
             $table->enum('tipe',['R','NR'])->default('R');
             $table->enum('status',['AKTIF','NONAKTIF'])->default('AKTIF');

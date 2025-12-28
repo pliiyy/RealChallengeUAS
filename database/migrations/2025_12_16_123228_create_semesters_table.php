@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('semester', function (Blueprint $table) {
             $table->id();
+            $table->string('semester');
             $table->string('tahun_akademik');
             $table->enum('jenis',['Ganjil','Genap']);
             $table->date('tanggal_mulai');

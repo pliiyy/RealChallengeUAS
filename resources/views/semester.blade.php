@@ -45,7 +45,12 @@
             @foreach ($semester as $index => $kls)
               <tr>
                 <td>{{ $semester->firstItem() + $index }}</td>
-                <td>{{ $kls->jenis }}</td>
+                <td>
+                  <div class="flex flex-col">
+                    <span>{{ $kls->nama }}</span>
+                    <span class="opacity-70 text-xs italic" style="opacity:80px;font-size:12px;font-style: italic">{{ $kls->jenis }}</span>
+                  </div>
+                </td>
                 <td>{{ $kls->tahun_akademik }}</td>
                 <td>{{ $kls->tanggal_mulai->format('d/m/Y') }} - {{ $kls->tanggal_mulai->format('d/m/Y') }}</td>
                 <td>
@@ -60,6 +65,7 @@
                       data-bs-toggle="modal" data-bs-target="#editModal"
                       data-id="{{ $kls->id }}"
                       data-jenis="{{ $kls->jenis }}"
+                      data-nama="{{ $kls->nama }}"
                       data-tahun_akademik="{{ $kls->tahun_akademik }}"
                       data-tanggal_mulai="{{ $kls->tanggal_mulai }}"
                       data-tanggal_selesai="{{ $kls->kapasitas }}"> 
@@ -67,7 +73,7 @@
                   </button>
                   <button type="button" class="btn btn-outline-danger btn-sm btn-delete"
                       data-bs-toggle="modal" data-bs-target="#deleteModal"
-                      data-id="{{ $kls->id }}" data-nama="{{ $kls->jenis }}">
+                      data-id="{{ $kls->id }}" data-nama="{{ $kls->nama }} {{ $kls->tahun_akademik }}">
                       <i class="bi bi-trash"></i>
                   </button>
                 </td>
@@ -100,6 +106,19 @@
                 <option value="Ganjil">Ganjil</option>
                 <option value="Genap">Genap</option>
             </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Semester</label>
+          <select class="form-select" name="nama">
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4">Semester 4</option>
+              <option value="5">Semester 5</option>
+              <option value="6">Semester 6</option>
+              <option value="7">Semester 7</option>
+              <option value="8">Semester 8</option>
+          </select>
         </div>
         <div class="mb-3">
           <label class="form-label">Tahun Akademik</label>
@@ -140,6 +159,19 @@
                 <option value="Ganjil">Ganjil</option>
                 <option value="Genap">Genap</option>
             </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Semester</label>
+          <select class="form-select" name="nama" id="edit-nama">
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4">Semester 4</option>
+              <option value="5">Semester 5</option>
+              <option value="6">Semester 6</option>
+              <option value="7">Semester 7</option>
+              <option value="8">Semester 8</option>
+          </select>
         </div>
         <div class="mb-3">
           <label for="edit-tahun_akademik" class="form-label">Tahun Akademik</label>
@@ -190,12 +222,14 @@
           // 1. Ambil data dari data-attributes
           var id = $(this).data('id');
           var jenis = $(this).data('jenis');
+          var nama = $(this).data('nama');
           var tahun_akademik = $(this).data('tahun_akademik');
           var tanggal_mulai = $(this).data('tanggal_mulai');
           var tanggal_selesai = $(this).data('tanggal_selesai');
 
           $('#edit-id').val(id);
           $('#edit-jenis').val(jenis);
+          $('#edit-nama').val(nama);
           $('#edit-tahun_akademik').val(tahun_akademik);
           $('#edit-tanggal_mulai').val(tanggal_mulai);
           $('#edit-tanggal_selesai').val(tanggal_selesai);

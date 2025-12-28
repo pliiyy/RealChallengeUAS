@@ -65,4 +65,6 @@ class FakultasController extends Controller
 
         return redirect('/fakultas')->with('success', 'Fakultas ' . $fakultas->nama . ' berhasil dihapus!');
     }
+
+    
 }

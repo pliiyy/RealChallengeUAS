@@ -11,7 +11,7 @@ class Kosma extends Model
 
     public function Mahasiswa()
     {
-        return $this->belongsTo(Mahasiswa::class,'user_id');
+        return $this->belongsTo(Mahasiswa::class,'mahasiswa_id');
     }
     public function Kelas()
     {

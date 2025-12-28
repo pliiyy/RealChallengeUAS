@@ -12,7 +12,7 @@ class SemesterController extends Controller
         $query = Semester::query();
 
         if ($request->filled('search')) {
-            $query->where('tahun_akademik', 'like', '%'.$request->search.'%');
+            $query->where('tahun_akademik', 'like', '%'.$request->search.'%')->orwhere('nama', 'like', '%'.$request->search.'%');
         }
 
         if ($request->filled('status')) {
@@ -38,6 +38,7 @@ class SemesterController extends Controller
     {
         $validated = $request->validate([
         'jenis' => 'required|string|max:255',
+        'nama' => 'required',
         'tahun_akademik' => 'required',
         'tanggal_mulai' => 'required',
         'tanggal_selesai' => 'required',
@@ -53,6 +54,7 @@ class SemesterController extends Controller
         
         $validated = $request->validate([
         'jenis' => 'required|string|max:255',
+        'nama' => 'required',
         'tahun_akademik' => 'required',
         'tanggal_mulai' => 'required',
         'tanggal_selesai' => 'required',

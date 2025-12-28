@@ -18,4 +18,8 @@ class Kaprodi extends Model
     {
         return $this->belongsTo(User::class,'user_id');
     }
+    public function Prodi()
+    {
+        return $this->belongsTo(Prodi::class,'prodi_id');
+    }
 }

@@ -91,7 +91,7 @@
 
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form class="modal-content" action="/dosen" method="POST">
+    <form class="modal-content" action="" method="POST">
       @csrf
       @method('POST')
       <div class="modal-header bg-primary text-white">
@@ -277,7 +277,7 @@
 
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form class="modal-content" id="editForm" action="" method="POST">
+    <form class="modal-content" id="editForm" action="/dosen" method="POST">
       @csrf
       @method('PUT')
       <div class="modal-header bg-primary text-white">
@@ -443,7 +443,7 @@
 
         // 3. Atur action form
         // Ganti '/role/' dengan URL route Anda yang benar, misal '/roles' atau sejenisnya
-        $('#editRoleForm').attr('action', '/dosen/' + id);
+        $('#editForm').attr('action', '/dosen/' + id);
 
     });
     $('.btn-delete').on('click', function() {
@@ -456,7 +456,7 @@
 
         // Atur action form
         // Ganti '/role/' dengan URL route Anda yang benar, misal '/roles' atau sejenisnya
-        $('#deleteRoleForm').attr('action', '/dosen/' + id);
+        $('#deleteForm').attr('action', '/dosen/' + id);
     });
 });
   document.addEventListener('DOMContentLoaded', function() {

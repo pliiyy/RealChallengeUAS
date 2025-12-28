@@ -1,16 +1,16 @@
 @extends('layout')
-@section('title', 'Dekan')
+@section('title', 'Kaprodi')
 
 @section('content')
 <div class="col-lg-10 col-md-9 content">
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span>👨‍🏫 Data Dekan</span>
+      <span>👨‍🏫 Data Kaprodi</span>
       <button class="btn btn-light btn-sm text-primary fw-semibold" data-bs-toggle="modal"
           data-bs-target="#addModal">
-        <i class="bi bi-plus-circle"></i> Tambah Dekan
+        <i class="bi bi-plus-circle"></i> Tambah
       </button>
-      <form action="/dekan" method="GET" class="d-flex gap-2 align-items-center">
+      <form action="/kaprodi" method="GET" class="d-flex gap-2 align-items-center">
           <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari ..."
               value="{{ request('search') }}">
 
@@ -30,19 +30,19 @@
               <th>#</th>
               <th>Nama Lengkap</th>
               <th>Email</th>
-              <th>Fakultas</th>
+              <th>Program Studi</th>
               <th>Status</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            @foreach ($dekan as $index => $kls)
+            @foreach ($kaprodi as $index => $kls)
               <tr>
-                <td>{{ $dekan->firstItem() + $index }}</td>
+                <td>{{ $kaprodi->firstItem() + $index }}</td>
                 <td >{{ $kls->user->biodata->nama }}</td>
                 <td>{{ $kls->user->email }}</td>
                 <td class="flex flex-col">
-                    <span>{{ $kls->fakultas->nama }}</span>
+                    <span>{{ $kls->prodi->nama }}</span>
                     <span style="font-style:italic;font-size:12px;">{{ $kls->periode_mulai->format("d/m/Y") }} - {{ $kls->periode_selesai->format("d/m/Y") }}</span>
                 </td>
                 <td>
@@ -69,7 +69,7 @@
                       data-alamat="{{ $kls->user->biodata->alamat }}"
                       data-periode_mulai="{{ $kls->periode_mulai->format('Y-m-d') }}"
                       data-periode_selesai="{{ $kls->periode_selesai->format('Y-m-d') }}"
-                      data-fakultas_id="{{ $kls->fakultas_id }}"
+                      data-fakultas_id="{{ $kls->prodi_id }}"
                       > 
                       <i class="bi bi-pencil"></i>
                   </button>
@@ -84,7 +84,7 @@
           </tbody>
         </table>
         <div class="mt-3">
-            {{ $dekan->links() }}
+            {{ $kaprodi->links() }}
         </div>
       </div>
     </div>
@@ -93,11 +93,11 @@
 
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form class="modal-content" action="/dekan" method="POST">
+    <form class="modal-content" action="/kaprodi" method="POST">
       @csrf
       @method('POST')
       <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="addRuanganModalLabel">Tambah Dekan Baru</h5>
+          <h5 class="modal-title" id="addRuanganModalLabel">Tambah Data</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -143,7 +143,7 @@
                 @enderror
             </div>
             <div class="mb-3">
-                <label for="exs_fakultas_id" class="form-label">Fakultas:</label>
+                <label for="exs_fakultas_id" class="form-label">Program Studi:</label>
                 <select name="exs_fakultas_id" class="form-select form-select-sm" id="exs_fakultas_id">
                     @foreach ($fakultas as $item)
                         <option value="{{ $item->id }}">{{ $item->nama }}</option>
@@ -175,7 +175,7 @@
                 @enderror
             </div>
             <div class="mb-3">
-                <label for="fakultas_id" class="form-label">Fakultas:</label>
+                <label for="fakultas_id" class="form-label">Program Studi:</label>
                 <select name="fakultas_id" id="fakultas_id" class="form-select form-select-sm">
                     @foreach ($fakultas as $item)
                         <option value="{{ $item->id }}">{{ $item->nama }}</option>
@@ -191,6 +191,17 @@
                     class="form-control @error('user_name') is-invalid @enderror"
                     value="{{ old('user_name') }}">
                 @error('user_name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="mb-3">
+                <label for="fakultas_id" class="form-label">Fakultas:</label>
+                <select name="fakultas_id" id="fakultas_id" class="form-select form-select-sm">
+                    @foreach ($fakultas as $item)
+                        <option value="{{ $item->id }}">{{ $item->nama }}</option>
+                    @endforeach
+                </select>
+                @error('fakultas_id')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
@@ -351,7 +362,7 @@
             @enderror
         </div>
         <div class="mb-3">
-            <label for="fakultas_id" class="form-label">Fakultas:</label>
+            <label for="fakultas_id" class="form-label">Program Studi:</label>
             <select name="fakultas_id" id="edit-fakultas_id" class="form-select form-select-sm">
                 @foreach ($fakultas as $item)
                     <option value="{{ $item->id }}">{{ $item->nama }}</option>
@@ -514,7 +525,7 @@
 
         // 3. Atur action form
         // Ganti '/role/' dengan URL route Anda yang benar, misal '/roles' atau sejenisnya
-        $('#editForm').attr('action', '/dekan/' + id);
+        $('#editForm').attr('action', '/kaprodi/' + id);
 
     });
     $('.btn-delete').on('click', function() {
@@ -527,7 +538,7 @@
 
         // Atur action form
         // Ganti '/role/' dengan URL route Anda yang benar, misal '/roles' atau sejenisnya
-        $('#deleteForm').attr('action', '/dekan/' + id);
+        $('#deleteForm').attr('action', '/kaprodi/' + id);
     });
 });
   document.addEventListener('DOMContentLoaded', function() {

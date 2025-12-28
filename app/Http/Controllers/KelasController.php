@@ -5,16 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Angkatan;
 use App\Models\Kelas;
 use App\Models\Prodi;
+use App\Models\Semester;
 use Illuminate\Http\Request;
 
 class KelasController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Kelas::with(["angkatan",'prodi']);
+        $query = Kelas::with(["angkatan",'prodi','semester']);
 
         if ($request->filled('search')) {
-            $query->where('nama', 'like', '%'.$request->search.'%')->orWhere('kode', 'like', '%'.$request->search.'%')->orWhere('semester', 'like', '%'.$request->search.'%');
+            $query->where('nama', 'like', '%'.$request->search.'%');
         }
         if ($request->filled('angkatan_id')) {
             $query->where('angkatan_id','=',$request->angkatan_id);
@@ -39,18 +40,18 @@ class KelasController extends Controller
         $kelas->appends($request->all());
         $prodi = Prodi::where('status','=','AKTIF')->get();
         $angkatan = Angkatan::where('status','=','AKTIF')->get();
+        $semester = Semester::where('status','=','AKTIF')->get();
 
-        return view('kelas', compact('kelas','prodi','angkatan'));
+        return view('kelas', compact('kelas','prodi','angkatan','semester'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
         'nama' => 'required|string|max:255',
-        'kode' => 'required|string|max:255',
+        'semester_id' => 'required|string|max:255',
         'prodi_id' => 'required',
         'angkatan_id' => 'required',
-        'semester' => 'required',
         'tipe' => 'required',
         ]);
 
@@ -65,10 +66,9 @@ class KelasController extends Controller
         
         $validated = $request->validate([
         'nama' => 'required|string|max:255',
-        'kode' => 'required|string|max:255',
+        'semester_id' => 'required|string|max:255',
         'prodi_id' => 'required',
         'angkatan_id' => 'required',
-        'semester' => 'required',
         'tipe' => 'required',
         ]);
 

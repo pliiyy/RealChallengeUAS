@@ -15,9 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('mahasiswa_id')->constrained("mahasiswa")->cascadeOnDelete();
             $table->foreignId('kelas_id')->constrained("kelas")->cascadeOnDelete();
-            $table->foreignId('semester_id')->constrained("semester")->cascadeOnDelete();
-            $table->date('tanggal_mulai')->nullable();
-            $table->date('tanggal_selesai')->nullable();
             $table->enum('status',['AKTIF','NONAKTIF'])->default('AKTIF');
             $table->timestamps();
         });

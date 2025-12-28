@@ -8,4 +8,9 @@ class Shift extends Model
 {
     protected $table = 'shift';
     protected $guarded = ['id'];
+
+    public function Jadwal()
+    {
+        return $this->hasMany(Jadwal::class);
+    }
 }

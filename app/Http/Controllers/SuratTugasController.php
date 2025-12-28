@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Dosen;
 use App\Models\Kelas;
 use App\Models\Matakuliah;
-use App\Models\Pengampu_mk;
-use App\Models\PengampuMKKelas;
 use App\Models\Semester;
 use App\Models\Surat_tugas;
 use Illuminate\Http\Request;
@@ -50,88 +48,91 @@ class SuratTugasController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-        'nomor_surat' => 'required|string|max:255',
-        'nomor_sk' => 'required|string|max:255',
-        'tanggal' => 'required|date',
-        'semester_id' => 'required|string|max:255',
-        'pengampu' => 'required|array',
-        'pengampu.*.matakuliah_id' => 'required|string',
-        'pengampu.*.kelas' => 'required|array',
-        'pengampu.*.sks' => 'required',
+            'nomor_surat' => 'required|string|max:255',
+            'nomor_sk' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'semester_id' => 'required',
+            'pengampu' => 'required|array',
+            'pengampu.*.matakuliah_id' => 'required',
+            'pengampu.*.kelas' => 'required|array',
+            'pengampu.*.sks' => 'required',
         ]);
 
-        $validated["status"] = "AKTIF";
-        
         DB::transaction(function () use ($request) {
+
             $savedSurat = Surat_tugas::create([
                 'tanggal' => $request->tanggal,
                 'nomor_sk' => $request->nomor_sk,
                 'nomor_surat' => $request->nomor_surat,
                 'semester_id' => $request->semester_id,
                 'dekan_id' => Auth::user()->dekan?->id,
-                'dosen_id' => $request->dosen_id
+                'dosen_id' => $request->dosen_id,
+                'status' => 'AKTIF',
             ]);
-            foreach ($request->pengampu as $pengampu) {
-                $pengampu['surat_tugas_id'] = $savedSurat->id;
-                $savedPengampu = Pengampu_mk::create($pengampu);
-                
-                foreach ($pengampu['kelas'] as $kelas) {
-                    PengampuMKKelas::create([
-                        'pengampu_mk_id' => $savedPengampu->id,
-                        'kelas_id' => $kelas,
-                    ]);
-                }
+
+            foreach ($request->pengampu as $data) {
+
+                // 1️⃣ Buat pengampu MK
+                $pengampuMk = $savedSurat->pengampu_mk()->create([
+                    'matakuliah_id' => $data['matakuliah_id'],
+                    'sks' => $data['sks'],
+                ]);
+
+                // 2️⃣ Attach kelas ke pengampu MK
+                $pengampuMk->kelas()->sync($data['kelas']);
             }
         });
 
-        return redirect('/surat')->with('success', 'Surat Tugas Mengajar '. $validated["nomor_surat"] .' berhasil ditambahkan!');
+        return redirect('/surat')
+            ->with('success', 'Surat Tugas Mengajar ' . $validated['nomor_surat'] . ' berhasil ditambahkan!');
     }
-    public function update(Request $request,  $id)
+
+    public function update(Request $request, $id)
     {
         $surat = Surat_tugas::findOrFail($id);
-        
+
         $validated = $request->validate([
             'nomor_surat' => 'nullable|string|max:255',
             'nomor_sk' => 'nullable|string|max:255',
             'tanggal' => 'nullable|date',
-            'semester_id' => 'nullable|string|max:255',
+            'semester_id' => 'nullable',
             'pengampu' => 'nullable|array',
-            'pengampu.*.matakuliah_id' => 'nullable|string',
+            'pengampu.*.matakuliah_id' => 'required',
             'pengampu.*.kelas' => 'nullable|array',
-            'pengampu.*.sks' => 'nullable',
+            'pengampu.*.sks' => 'required',
             'status' => 'nullable',
-            'file' => 'nullable',
+            'file' => 'nullable|file',
         ]);
         if ($request->hasFile('file')) {
-                // hapus foto lama
             if ($surat->file && Storage::disk('public')->exists($surat->file)) {
                 Storage::disk('public')->delete($surat->file);
             }
 
-            $photoPath = $request->file('file')
-                ->store('profil', 'public');
-            $surat->file = $photoPath;
+            $validated['file'] = $request->file('file')->store('profil', 'public');
         }
+
         $surat->update($validated);
+
         if ($request->has('pengampu')) {
-            $surat->pengampu()->delete(); 
+
+            $surat->pengampu_mk()->delete();
 
             foreach ($request->pengampu as $data) {
-                $surat->pengampu()->create([
+
+                $pengampu = $surat->pengampu_mk()->create([
                     'matakuliah_id' => $data['matakuliah_id'],
-                    'sks'           => $data['sks'],
+                    'sks' => $data['sks'],
                 ]);
-                if($data->has('kelas')){
-                    $surat->pengampu_mk()->kelas()->delete();
-                    foreach ($data['kelas'] as $kelas) {
-                        $surat->pengampu_mk()->kelas()->create($kelas);
-                    }
+
+                if (!empty($data['kelas'])) {
+                    $pengampu->kelas()->sync($data['kelas']);
                 }
             }
         }
 
-        return redirect('/surat')->with('success', 'Surat tugas  berhasil diperbarui!');
+        return redirect('/surat')->with('success', 'Surat tugas berhasil diperbarui!');
     }
+
     public function destroy( $id)
     {
         $surat = Surat_tugas::findOrFail($id);

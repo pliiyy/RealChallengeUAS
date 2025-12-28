@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Angkatan;
 use App\Models\Biodata;
-use App\Models\Dekan;
-use App\Models\Fakultas;
+use App\Models\Kelas;
+use App\Models\Mahasiswa;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
-class DekanController extends Controller
+class MahasiswaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Dekan::with(['user.biodata', 'fakultas']);
+        $query = Mahasiswa::with(['user.biodata']);
 
         if ($request->filled('search')) {
             $query->whereHas('user', function ($q) use ($request) {
@@ -33,15 +33,17 @@ class DekanController extends Controller
         }
 
         // Pagination, misal 10 data per halaman
-        $dekan = $query->orderBy('id', 'desc')->paginate(10);
+        $mahasiswa = $query->orderBy('id', 'desc')->paginate(10);
 
         // Biar query string tetap terbawa saat paginate link
-        $dekan->appends($request->all());
-        $fakultas = Fakultas::where("status","=","AKTIF")->get();
+        $mahasiswa->appends($request->all());
         $users = User::whereDoesntHave('role', function ($query) {
-            $query->where('nama', 'dekan');
+            $query->where('nama', 'mahasiswa');
         })->get();
-        return view('dekan', compact('dekan','fakultas','users'));
+        $fakultas = Kelas::where("status","AKTIF")->get();
+        $angkatan = Angkatan::where("status","AKTIF")->get();
+
+        return view('mahasiswa', compact('mahasiswa','users','fakultas', 'angkatan'));
     }
 
     public function store(Request $request)
@@ -51,21 +53,21 @@ class DekanController extends Controller
                 'nullable', 
                 Rule::exists('user', 'id'),
             ],
-            'exs_periode_mulai' => ['nullable'],
-            'exs_periode_selesai' => ['nullable'],
             'exs_fakultas_id' => ['nullable'],
-            'periode_mulai' => ['nullable'],
-            'periode_selesai' => ['nullable'],
             'fakultas_id' => ['nullable'],
+            'ext_nidn' => ['nullable'],
+            'nidn' => ['nullable'],
+            'ext_angkatan_id' => ['nullable'],
+            'ext_kelas_id' => ['nullable'],
+            'angkatan_id' => ['nullable'],
+            'kelas_id' => ['nullable'],
             'user_name' => [
                 Rule::requiredIf(is_null($request->user_id)), // Wajib jika user_id kosong
                 'string', 
                 'max:255',
             ],
             'user_email' => [
-                Rule::requiredIf(is_null($request->user_id)), // Wajib jika user_id kosong
-                'email', 
-                'unique:user,email', // Pastikan email unik jika membuat baru
+                'nullable', // Pastikan email unik jika membuat baru
             ],
             'user_password' => [
                 Rule::requiredIf(is_null($request->user_id)), // Wajib jika membuat baru
@@ -149,21 +151,21 @@ class DekanController extends Controller
             if (!$dUser) {
                 throw new \Exception("Gagal menemukan atau membuat data User.");
             }
-            $roleDekan = Role::where('nama','dekan')->first();
+            $roleDekan = Role::where('nama','mahasiswa')->first();
             $dUser->role()->attach($roleDekan->id);
             
-            Dekan::create([
+            Mahasiswa::create([
                     "user_id" => $dUser->id,
-                    "periode_mulai" => empty($validatedData['user_id']) ? $validatedData['periode_mulai'] : $validatedData['exs_periode_mulai'],
-                    "periode_selesai" => empty($validatedData['user_id'])?$validatedData['periode_selesai']:$validatedData['exs_periode_selesai'],
-                    "fakultas_id" => empty($validatedData['user_id'])?$validatedData['fakultas_id']:$validatedData['exs_fakultas_id'],
+                    "nim" => $validatedData['ext_nidn'] ?? $validatedData["nidn"],
+                    "kelas_id" => $validatedData['fakultas_id'],
+                    "angkatan_id" => $validatedData['angkatan_id'],
                 ]);
 
             DB::commit();
 
-            $message = 'User dekan berhasil dtambahkan!';
+            $message = 'User Mahasiswa berhasil dtambahkan!';
             
-            return redirect('/dosen')->with('success', $message);
+            return redirect('/mahasiswa')->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -171,77 +173,69 @@ class DekanController extends Controller
             
             return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data Dosen. ' . $e->getMessage());
         }
-        return redirect('/dekan')->with('success', 'Dekan berhasil ditambahkan!');
+        return redirect('/mahasiswa')->with('success', 'Mahasiswa berhasil ditambahkan!');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request,  $id)
     {
-        $dekan = Dekan::findOrFail($id);
-        $user = $dekan->user;
-        $biodata = $dekan->user->biodata;
-
-        $request->validate([
-            'nama'        => 'required',
-            'jenis_kelamin'        => 'nullable',
-            'agama'        => 'nullable',
-            'tempat_lahir'        => 'nullable',
-            'tanggal_lahir'        => 'nullable',
-            'alamat'        => 'nullable',
-            'kelurahan'        => 'nullable',
-            'kec_id'        => 'nullable',
-            'kab_id'        => 'nullable',
-            'prov_id'        => 'nullable',
-            'kodepos'        => 'nullable',
-            'email'       => 'required|email|unique:user,email,'.$id,
-            'password'    => 'nullable',
-            'fakultas_id' => 'nullable|exists:fakultas,id',
-            'periode_mulai' => 'nullable',
-            'periode_selesai' => 'nullable',
+        $d = Mahasiswa::with(['user.biodata'])->findOrFail($id);
+        
+        $validated = $request->validate([
+        'user_name' => ['string', 'max:255'],
+        'user_email' => ['email', 'unique:user,email,'.$d->user->id],
+        'nidn' => ["nullable"],
+        'jenis_kelamin' => ['nullable','string', 'max:1'],
+        'agama' => ['nullable','string'],
+        'tempat_lahir' => ['nullable','string'],
+        'tanggal_lahir' => ['nullable','string'],
+        'alamat' => ['nullable','string'],
+        'kelurahan' => ['nullable','string'],
+        'kec_id' => ['nullable','string'],
+        'kab_id' => ['nullable','string'],
+        'prov_id' => ['nullable','string'],
+        'nidn' => ['string', 'unique:dosen,nidn,'.$id],
+        'angkatan_id' => ['string'],
+        'fakultas_id' => ['string'],
         ]);
 
-        $dekan->update([
-            'periode_mulai'=> $$request->periode_mulai ?? $dekan->periode_mulai,
-            'periode_selesai'=> $$request->periode_selesai ?? $dekan->periode_selesai,
-            'fakultas_id'=> $$request->fakultas_id ?? $dekan->fakultas_id,
+        $user = User::findOrFail($d->user->id);
+        $d->update([
+            'nim' => $request->nidn ?? $d->nidn,
+            'angkatan_id' => $request->angkatan_id ?? $d->angkatan_id,
+            'kelas_id' => $request->fakultas_id ?? $d->kelas_id,
         ]);
 
-        // update password jika diisi
-        if ($request->filled('password')) {
-            $request['password'] = Hash::make($request->password);
-        }else{
-            $request['password'] = $user->password;
-        }
-        $user->email = $request->email;
-        $user->password = $request->password;
-        $user->update();
+        $user->update([
+            'email' => $validated['user_email'],
+            'status'=>'AKTIF'
+        ]);
+        $user->biodata()->update([
+        'nama' => $validated['user_name'] ?? null,
+        'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
+        'tempat_lahir' => $validated['tempat_lahir'] ?? null,
+        'tanggal_lahir' => $validated['tanggal_lahir'] ?? null,
+        'agama' => $validated['agama'] ?? null,
+        'alamat' => $validated['alamat'] ?? null,
+        'kelurahan' => $validated['kelurahan'] ?? null,
+        'kec_id' => $validated['kec_id'] ?? null,
+        'kab_id' => $validated['kab_id'] ?? null,
+        'prov_id' => $validated['prov_id'] ?? null,
+        'kelas_id' => $validated['kelas_id'] ?? null,
+        'angkatan_id' => $validated['angkatan_id'] ?? null,
+    ]);
 
-        $biodata->jenis_kelamin = $request->jenis_kelamin;
-        $biodata->agama = $request->agama;
-        $biodata->tempat_lahir = $request->tempat_lahir;
-        $biodata->tanggal_lahir = $request->tanggal_lahir;
-        $biodata->alamat = $request->alamat;
-        $biodata->kelurahan = $request->kelurahan;
-        $biodata->kec_id = $request->kec_id;
-        $biodata->kab_id = $request->kab_id;
-        $biodata->prov_id = $request->prov_id;
-        $biodata->kodepos = $request->kodepos;
-        $biodata->update();
-
-        $dekan->fakultas_id = $request->fakultas_id;
-        $dekan->update();
-
-        return redirect('/dekan')->with('success', 'Dekan berhasil diperbarui!');
+        return redirect('/mahasiswa')->with('success', 'Mahasiswa berhasil diperbarui!');
     }
 
     public function destroy( $id)
     {
-        $roleDekan = Role::where('nama', 'dekan')->first();
-        $dekan = Dekan::findOrFail($id);
-        
-        $dekan->user()->role()->detach($roleDekan->id);
-        $dekan->status = "NONAKTIF";
-        $dekan->update();
+        $d = Mahasiswa::findOrFail($id);
+        $role = Role::where('nama', 'mahasiswa')->first();
+        $d->user()->role()->detach($role->id);
+        $dName = $d->user->biodata->nama;
+        $d->status = "NONAKTIF";
+        $d->update();
 
-        return redirect('/dekan')->with('success', 'dekan ' . $dekan->nama . ' berhasil dihapus!');
+        return redirect('/mahasiswa')->with('success', 'Mahasiswa '.$dName.' berhasil dihapus!');
     }
 }

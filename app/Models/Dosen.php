@@ -13,4 +13,8 @@ class Dosen extends Model
     {
         return $this->belongsTo(User::class,'user_id');
     }
+    public function Surat_tugas()
+    {
+        return $this->hasMany(Surat_tugas::class);
+    }
 }

@@ -188,7 +188,7 @@
                             <td style="padding: 8px;">{{ $kls->matakuliah->nama }}</td>
                             <td style="padding: 8px; text-align: center;">{{ $kls->sks }}</td>
                             <td style="padding: 8px; text-align: center;">{{ $kls->matakuliah->prodi->jenjang }} {{ $kls->matakuliah->prodi->kode }}</td>
-                            <td style="padding: 8px; text-align: center;">{{ $surat->semester->tahun_akademik }}</td>
+                            <td style="padding: 8px; text-align: center;">{{ $surat->semester->nama }}</td>
                             <td style="padding: 8px; text-align: center;">{{ $kls->kelas->pluck('tipe')->unique()->implode('/') }}</td>
                             <td style="padding: 8px; text-align: center;">{{ count($kls->kelas) }}</td>
                             <td style="padding: 8px; text-align: center;">{{ count($kls->kelas) * $kls->sks }}</td>
@@ -205,7 +205,7 @@
         </div>
 
         <div style="text-align: justify;line-height: 1.3;">
-            <p>Perlu kami sampaikan bahwa perkuliahan semester {{ $surat->semester->jenis }} tahun akademik {{ $surat->semester->tahun_akademik }} insya Allah akan dimulai tanggal 15 September 2025, untuk itu kaml mohon Bapak dapat mempersiapkan <span style="font-weight:bold;">Rencana Pembelaiaran Semester (RPSI)</span> dan Bahan Ajar untuk matakuliah di atas dan menyampaikannya ke Fakultas {{ $surat->dekan->fakultas->nama }} Universitas Ma'soem <span style="font-weight:bold;">paling lambat diminggu pertama perkuliahan</span>.</p>
+            <p>Perlu kami sampaikan bahwa perkuliahan semester {{ $surat->semester->jenis }} tahun akademik {{ $surat->semester->tahun_akademik }} insya Allah akan dimulai tanggal {{ \Carbon\Carbon::parse($surat->tanggal ?? now())->isoFormat('D MMMM Y') }}, untuk itu kaml mohon Bapak dapat mempersiapkan <span style="font-weight:bold;">Rencana Pembelaiaran Semester (RPSI)</span> dan Bahan Ajar untuk matakuliah di atas dan menyampaikannya ke Fakultas {{ $surat->dekan->fakultas->nama }} Universitas Ma'soem <span style="font-weight:bold;">paling lambat diminggu pertama perkuliahan</span>.</p>
             <p>Atas perhatiannya kami ucapkan terimakasih.</p>
         </div>
 

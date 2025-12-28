@@ -171,37 +171,38 @@ class DosenController extends Controller
         $validated = $request->validate([
         'user_name' => ['string', 'max:255'],
         'user_email' => ['email', 'unique:user,email,'.$d->user->id],
-        'jenis_kelamin' => ['string', 'max:1'],
-        'agama' => ['string'],
-        'tempat_lahir' => ['string'],
-        'tanggal_lahir' => ['string'],
-        'alamat' => ['string'],
-        'kelurahan' => ['string'],
-        'kec_id' => ['string'],
-        'kab_id' => ['string'],
-        'prov_id' => ['string'],
+        'jenis_kelamin' => ['nullable','string', 'max:1'],
+        'agama' => ['nullable','string'],
+        'tempat_lahir' => ['nullable','string'],
+        'tanggal_lahir' => ['nullable','string'],
+        'alamat' => ['nullable','string'],
+        'kelurahan' => ['nullable','string'],
+        'kec_id' => ['nullable','string'],
+        'kab_id' => ['nullable','string'],
+        'prov_id' => ['nullable','string'],
         'nidn' => ['string', 'unique:dosen,nidn,'.$id],
         ]);
 
         $user = User::findOrFail($d->user->id);
-        $biodata = Biodata::findOrFail($d->user->biodata->id);
+        $d->update([
+            'nidn' => $request->nidn ?? $d->nidn
+        ]);
 
         $user->update([
             'email' => $validated['user_email'],
             'status'=>'AKTIF'
         ]);
-        $biodata->update([
-        'nama' => $validated['user_name'],
-        'jenis_kelamin' => $validated['jenis_kelamin'],
-        'tempat_lahir' => $validated['tempat_lahir'],
-        'tanggal_lahir' => $validated['tanggal_lahir'],
-        'agama' => $validated['agama'],
-        'alamat' => $validated['alamat'],
-        'kelurahan' => $validated['kelurahan'],
-        'kec_id' => $validated['kec_id'],
-        'kab_id' => $validated['kab_id'],
-        'prov_id' => $validated['prov_id'],
-        'user_id' => $d->user_id,
+        $user->biodata()->update([
+        'nama' => $validated['user_name'] ?? null,
+        'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
+        'tempat_lahir' => $validated['tempat_lahir'] ?? null,
+        'tanggal_lahir' => $validated['tanggal_lahir'] ?? null,
+        'agama' => $validated['agama'] ?? null,
+        'alamat' => $validated['alamat'] ?? null,
+        'kelurahan' => $validated['kelurahan'] ?? null,
+        'kec_id' => $validated['kec_id'] ?? null,
+        'kab_id' => $validated['kab_id'] ?? null,
+        'prov_id' => $validated['prov_id'] ?? null,
     ]);
 
         return redirect('/dosen')->with('success', 'Dosen berhasil diperbarui!');
@@ -210,8 +211,11 @@ class DosenController extends Controller
     public function destroy( $id)
     {
         $d = Dosen::findOrFail($id);
+        $role = Role::where('nama', 'dosen')->first();
+        $d->user()->role()->detach($role->id);
         $dName = $d->user->biodata->nama;
-        $d->delete();
+        $d->status = "NONAKTIF";
+        $d->update();
 
         return redirect('/dosen')->with('success', 'Dosen '.$dName.' berhasil dihapus!');
     }

@@ -3,20 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Biodata;
-use App\Models\Dekan;
-use App\Models\Fakultas;
+use App\Models\Prodi;
 use App\Models\Role;
+use App\Models\Sekprodi;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
-class DekanController extends Controller
+class SekprodiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Dekan::with(['user.biodata', 'fakultas']);
+        $query = Sekprodi::with(['user.biodata', 'prodi']);
 
         if ($request->filled('search')) {
             $query->whereHas('user', function ($q) use ($request) {
@@ -33,15 +33,15 @@ class DekanController extends Controller
         }
 
         // Pagination, misal 10 data per halaman
-        $dekan = $query->orderBy('id', 'desc')->paginate(10);
+        $sekprodi = $query->orderBy('id', 'desc')->paginate(10);
 
         // Biar query string tetap terbawa saat paginate link
-        $dekan->appends($request->all());
-        $fakultas = Fakultas::where("status","=","AKTIF")->get();
+        $sekprodi->appends($request->all());
+        $fakultas = Prodi::where("status","=","AKTIF")->get();
         $users = User::whereDoesntHave('role', function ($query) {
-            $query->where('nama', 'dekan');
+            $query->where('nama', 'sekprodi');
         })->get();
-        return view('dekan', compact('dekan','fakultas','users'));
+        return view('sekprodi', compact('sekprodi','fakultas','users'));
     }
 
     public function store(Request $request)
@@ -149,19 +149,19 @@ class DekanController extends Controller
             if (!$dUser) {
                 throw new \Exception("Gagal menemukan atau membuat data User.");
             }
-            $roleDekan = Role::where('nama','dekan')->first();
+            $roleDekan = Role::where('nama','sekprodi')->first();
             $dUser->role()->attach($roleDekan->id);
             
-            Dekan::create([
+            Sekprodi::create([
                     "user_id" => $dUser->id,
                     "periode_mulai" => empty($validatedData['user_id']) ? $validatedData['periode_mulai'] : $validatedData['exs_periode_mulai'],
                     "periode_selesai" => empty($validatedData['user_id'])?$validatedData['periode_selesai']:$validatedData['exs_periode_selesai'],
-                    "fakultas_id" => empty($validatedData['user_id'])?$validatedData['fakultas_id']:$validatedData['exs_fakultas_id'],
+                    "prodi_id" => empty($validatedData['user_id'])?$validatedData['fakultas_id']:$validatedData['exs_fakultas_id'],
                 ]);
 
             DB::commit();
 
-            $message = 'User dekan berhasil dtambahkan!';
+            $message = 'User berhasil dtambahkan!';
             
             return redirect('/dosen')->with('success', $message);
 
@@ -169,14 +169,14 @@ class DekanController extends Controller
             DB::rollBack();
             // Log error untuk debug
             
-            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data Dosen. ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data. ' . $e->getMessage());
         }
-        return redirect('/dekan')->with('success', 'Dekan berhasil ditambahkan!');
+        return redirect('/sekprodi')->with('success', 'Data berhasil ditambahkan!');
     }
 
     public function update(Request $request, $id)
     {
-        $dekan = Dekan::findOrFail($id);
+        $dekan = Sekprodi::findOrFail($id);
         $user = $dekan->user;
         $biodata = $dekan->user->biodata;
 
@@ -202,7 +202,7 @@ class DekanController extends Controller
         $dekan->update([
             'periode_mulai'=> $$request->periode_mulai ?? $dekan->periode_mulai,
             'periode_selesai'=> $$request->periode_selesai ?? $dekan->periode_selesai,
-            'fakultas_id'=> $$request->fakultas_id ?? $dekan->fakultas_id,
+            'prodi_id'=> $$request->fakultas_id ?? $dekan->prodi_id,
         ]);
 
         // update password jika diisi
@@ -230,18 +230,18 @@ class DekanController extends Controller
         $dekan->fakultas_id = $request->fakultas_id;
         $dekan->update();
 
-        return redirect('/dekan')->with('success', 'Dekan berhasil diperbarui!');
+        return redirect('/sekprodi')->with('success', 'Sekprodi berhasil diperbarui!');
     }
 
     public function destroy( $id)
     {
-        $roleDekan = Role::where('nama', 'dekan')->first();
-        $dekan = Dekan::findOrFail($id);
+        $roleDekan = Role::where('nama', 'sekprodi')->first();
+        $dekan = Sekprodi::findOrFail($id);
         
         $dekan->user()->role()->detach($roleDekan->id);
         $dekan->status = "NONAKTIF";
         $dekan->update();
 
-        return redirect('/dekan')->with('success', 'dekan ' . $dekan->nama . ' berhasil dihapus!');
+        return redirect('/sekprodi')->with('success', 'Sekprodi ' . $dekan->nama . ' berhasil dihapus!');
     }
 }

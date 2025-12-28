@@ -1,16 +1,16 @@
 @extends('layout')
-@section('title', 'Dekan')
+@section('title', 'Mahasiswa')
 
 @section('content')
 <div class="col-lg-10 col-md-9 content">
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span>👨‍🏫 Data Dekan</span>
+      <span>👨‍🏫 Data Mahasiswa</span>
       <button class="btn btn-light btn-sm text-primary fw-semibold" data-bs-toggle="modal"
           data-bs-target="#addModal">
-        <i class="bi bi-plus-circle"></i> Tambah Dekan
+        <i class="bi bi-plus-circle"></i> Tambah
       </button>
-      <form action="/dekan" method="GET" class="d-flex gap-2 align-items-center">
+      <form action="/mahasiswa" method="GET" class="d-flex gap-2 align-items-center">
           <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari ..."
               value="{{ request('search') }}">
 
@@ -30,20 +30,25 @@
               <th>#</th>
               <th>Nama Lengkap</th>
               <th>Email</th>
-              <th>Fakultas</th>
+              <th>Kelas</th>
               <th>Status</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            @foreach ($dekan as $index => $kls)
+            @foreach ($mahasiswa as $index => $kls)
               <tr>
-                <td>{{ $dekan->firstItem() + $index }}</td>
-                <td >{{ $kls->user->biodata->nama }}</td>
+                <td>{{ $mahasiswa->firstItem() + $index }}</td>
+                <td >
+                    <div class="flex flex-col">
+                        <div >{{ $kls->user->biodata->nama }}</div>    
+                        <div style="font-style:italic;font-size:12px;">{{ $kls->nim }}</div>    
+                    </div>
+                </td>
                 <td>{{ $kls->user->email }}</td>
                 <td class="flex flex-col">
-                    <span>{{ $kls->fakultas->nama }}</span>
-                    <span style="font-style:italic;font-size:12px;">{{ $kls->periode_mulai->format("d/m/Y") }} - {{ $kls->periode_selesai->format("d/m/Y") }}</span>
+                    <span>{{ $kls->kelas->nama }} / {{ $kls->kelas->tipe }}</span>
+                    <span style="font-style:italic;font-size:12px;">{{ $kls->kelas->prodi->nama }}</span>
                 </td>
                 <td>
                     @if ($kls->status == 'AKTIF')
@@ -56,6 +61,7 @@
                   <button type="button" class="btn btn-outline-primary btn-sm btn-edit"
                       data-bs-toggle="modal" data-bs-target="#editModal"
                       data-id="{{ $kls->id }}"
+                      data-nidn="{{ $kls->nim }}"
                       data-nama="{{ $kls->user->biodata->nama }}"
                       data-email="{{ $kls->user->email }}"
                       data-tempat_lahir="{{ $kls->user->biodata->tempat_lahir }}"
@@ -67,9 +73,8 @@
                       data-kec_id="{{ $kls->user->biodata->kec_id }}"
                       data-kelurahan="{{ $kls->user->biodata->kelurahan }}"
                       data-alamat="{{ $kls->user->biodata->alamat }}"
-                      data-periode_mulai="{{ $kls->periode_mulai->format('Y-m-d') }}"
-                      data-periode_selesai="{{ $kls->periode_selesai->format('Y-m-d') }}"
-                      data-fakultas_id="{{ $kls->fakultas_id }}"
+                      data-fakultas_id="{{ $kls->kelas_id }}"
+                      data-angkatan_id="{{ $kls->angkatan_id }}"
                       > 
                       <i class="bi bi-pencil"></i>
                   </button>
@@ -84,7 +89,7 @@
           </tbody>
         </table>
         <div class="mt-3">
-            {{ $dekan->links() }}
+            {{ $mahasiswa->links() }}
         </div>
       </div>
     </div>
@@ -93,11 +98,11 @@
 
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form class="modal-content" action="/dekan" method="POST">
+    <form class="modal-content" action="/mahasiswa" method="POST">
       @csrf
       @method('POST')
       <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="addRuanganModalLabel">Tambah Dekan Baru</h5>
+          <h5 class="modal-title" id="addRuanganModalLabel">Tambah Data</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -127,23 +132,15 @@
                 @enderror
             </div>
             <div class="mb-3">
-                <label for="exs_periode_mulai" class="form-label">Periode Mulai:</label>
-                <input type="date" name="exs_periode_mulai" id="exs_periode_mulai"
-                    class="form-control form-control-sm @error('exs_periode_mulai') is-invalid @enderror" value="{{ old('exs_periode_mulai') }}">
-                @error('exs_periode_mulai')
+                <label for="nidn" class="form-label">NIM:</label>
+                <input type="text" name="ext_nidn" id="nidn_existing"
+                    class="form-control @error('nidn') is-invalid @enderror" value="{{ old('nidn') }}">
+                @error('nidn')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-3">
-                <label for="exs_periode_selesai" class="form-label">Periode Selesai:</label>
-                <input type="date" name="exs_periode_selesai" id="exs_periode_selesai"
-                    class="form-control form-control-sm @error('exs_periode_selesai') is-invalid @enderror" value="{{ old('exs_periode_selesai') }}">
-                @error('exs_periode_selesai')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-            <div class="mb-3">
-                <label for="exs_fakultas_id" class="form-label">Fakultas:</label>
+                <label for="exs_fakultas_id" class="form-label">Kelas:</label>
                 <select name="exs_fakultas_id" class="form-select form-select-sm" id="exs_fakultas_id">
                     @foreach ($fakultas as $item)
                         <option value="{{ $item->id }}">{{ $item->nama }}</option>
@@ -153,29 +150,41 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="mb-3">
+                <label for="exs_angkatan_id" class="form-label">Angkatan:</label>
+                <select name="exs_angkatan_id" class="form-select form-select-sm" id="exs_angkatan_id">
+                    @foreach ($angkatan as $item)
+                        <option value="{{ $item->id }}">{{ $item->tahun }}</option>
+                    @endforeach
+                </select>
+                @error('exs_angkatan_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
         </div>
 
 
         <div id="new-user-block" class="d-none">
             <h5 class="mt-4 mb-3 text-primary">Data Baru</h5>
             <div class="mb-3">
-                <label for="periode_mulai" class="form-label">Periode Mulai:</label>
-                <input type="date" name="periode_mulai" id="periode_mulai"
-                    class="form-control form-control-sm @error('periode_mulai') is-invalid @enderror" value="{{ old('periode_mulai') }}">
-                @error('periode_mulai')
+                <label for="nidn" class="form-label">NIM:</label>
+                <input type="text" name="nidn" id="nidn_new"
+                    class="form-control @error('nidn') is-invalid @enderror" value="{{ old('nidn') }}">
+                @error('nidn')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-3">
-                <label for="periode_selesai" class="form-label">Periode Selesai:</label>
-                <input type="date" name="periode_selesai" id="periode_selesai"
-                    class="form-control form-control-sm @error('periode_selesai') is-invalid @enderror" value="{{ old('periode_selesai') }}">
-                @error('periode_selesai')
+                <label for="user_name" class="form-label">Nama Lengkap:</label>
+                <input type="text" name="user_name" id="user_name"
+                    class="form-control @error('user_name') is-invalid @enderror"
+                    value="{{ old('user_name') }}">
+                @error('user_name')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-3">
-                <label for="fakultas_id" class="form-label">Fakultas:</label>
+                <label for="fakultas_id" class="form-label">Kelas:</label>
                 <select name="fakultas_id" id="fakultas_id" class="form-select form-select-sm">
                     @foreach ($fakultas as $item)
                         <option value="{{ $item->id }}">{{ $item->nama }}</option>
@@ -186,11 +195,13 @@
                 @enderror
             </div>
             <div class="mb-3">
-                <label for="user_name" class="form-label">Nama Lengkap:</label>
-                <input type="text" name="user_name" id="user_name"
-                    class="form-control @error('user_name') is-invalid @enderror"
-                    value="{{ old('user_name') }}">
-                @error('user_name')
+                <label for="angkatan_id" class="form-label">Angkatan:</label>
+                <select name="angkatan_id" id="angkatan_id" class="form-select form-select-sm">
+                    @foreach ($angkatan as $item)
+                        <option value="{{ $item->id }}">{{ $item->tahun }}</option>
+                    @endforeach
+                </select>
+                @error('angkatan_id')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
@@ -323,23 +334,10 @@
         <h5 class="modal-title" id="editModalLabel">Edit Data: <span id="edit-name"></span></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <input type="hidden" name="id" id="edit-id"> {{-- ID role yang akan diupdate --}}
+        <input type="hidden" name="id" id="edit-id">
         <div class="mb-3">
-        <label for="periode_mulai" class="form-label">Periode Mulai:</label>
-        <input type="date" name="periode_mulai" id="edit-periode_mulai"
-            class="form-control form-control-sm @error('periode_mulai') is-invalid @enderror" value="{{ old('periode_mulai') }}">
-        @error('periode_mulai')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-        </div>
-        <div class="mb-3">
-            <label for="periode_selesai" class="form-label">Periode Selesai:</label>
-            <input type="date" name="periode_selesai" id="edit-periode_selesai"
-                class="form-control form-control-sm @error('periode_selesai') is-invalid @enderror" value="{{ old('periode_selesai') }}">
-            @error('periode_selesai')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
+            <label for="edit-nidn" class="form-label">NIM</label>
+            <input type="text" class="form-control" id="edit-nidn" name="nidn" required />
         </div>
         <div class="mb-3">
             <label for="nama" class="form-label">Nama Lengkap:</label>
@@ -351,13 +349,24 @@
             @enderror
         </div>
         <div class="mb-3">
-            <label for="fakultas_id" class="form-label">Fakultas:</label>
+            <label for="fakultas_id" class="form-label">Kelas:</label>
             <select name="fakultas_id" id="edit-fakultas_id" class="form-select form-select-sm">
                 @foreach ($fakultas as $item)
                     <option value="{{ $item->id }}">{{ $item->nama }}</option>
                 @endforeach
             </select>
             @error('fakultas_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="mb-3">
+            <label for="angkatan_id" class="form-label">Angkatan:</label>
+            <select name="angkatan_id" id="edit-angkatan_id" class="form-select form-select-sm">
+                @foreach ($angkatan as $item)
+                    <option value="{{ $item->id }}">{{ $item->tahun }}</option>
+                @endforeach
+            </select>
+            @error('angkatan_id')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
@@ -470,79 +479,77 @@
 
 <script>
   $(document).ready(function() {
-            // Tangkap saat tombol edit diklik
-    $('.btn-edit').on('click', function() {
-        // 1. Ambil data dari data-attributes
-        var id = $(this).data('id');
-        var periode_mulai = $(this).data('periode_mulai');
-        var periode_selesai = $(this).data('periode_selesai');
-        var fakultas_id = $(this).data('fakultas_id');
-        var nama = $(this).data('nama');
-        var email = $(this).data('email');
-        var jenis_kelamin = $(this).data('jenis_kelamin');
-        var agama = $(this).data('agama');
-        var tempat_lahir = $(this).data('tempat_lahir');
-        var tanggal_lahir = $(this).data('tanggal_lahir');
-        var prov_id = $(this).data('prov_id');
-        var kec_id = $(this).data('kec_id');
-        var kab_id = $(this).data('kab_id');
-        var kecamatan = $(this).data('kecamatan');
-        var kelurahan = $(this).data('kelurahan');
-        var alamat = $(this).data('alamat');
-        // var izinAksesJson = $(this).data('izin_akses');
-        RubahProvinsi(prov_id);
-        RubahKota(kab_id);
+        $('.btn-edit').on('click', function() {
+            // 1. Ambil data dari data-attributes
+            var id = $(this).data('id');
+            var fakultas_id = $(this).data('fakultas_id');
+            var angkatan_id = $(this).data('angkatan_id');
+            var nama = $(this).data('nama');
+            var email = $(this).data('email');
+            var nidn = $(this).data('nidn');
+            var jenis_kelamin = $(this).data('jenis_kelamin');
+            var agama = $(this).data('agama');
+            var tempat_lahir = $(this).data('tempat_lahir');
+            var tanggal_lahir = $(this).data('tanggal_lahir');
+            var prov_id = $(this).data('prov_id');
+            var kec_id = $(this).data('kec_id');
+            var kab_id = $(this).data('kab_id');
+            var kecamatan = $(this).data('kecamatan');
+            var kelurahan = $(this).data('kelurahan');
+            var alamat = $(this).data('alamat');
+            // var izinAksesJson = $(this).data('izin_akses');
+            RubahProvinsi(prov_id);
+            RubahKota(kab_id);
 
-        // 2. Isi data Role ke dalam form modal
-        $('#edit-id').val(id);
-        $('#edit-periode_mulai').val(periode_mulai);
-        $('#edit-periode_selesai').val(periode_selesai);
-        $('#edit-fakultas_id').val(fakultas_id);
-        $('#edit-nama').val(nama);
-        $('#edit-email').val(email);
-        $('#edit-tempat_lahir').val(tempat_lahir);
-        $('#edit-tanggal_lahir').val(tanggal_lahir);
-        $('#edit-jenis_kelamin').val(jenis_kelamin);
-        $('#edit-agama').val(agama);
-        $('#edit-prov_id').val(prov_id);
-        $('#edit-kab_id').val(kab_id);
-        $('#edit-kec_id').val(kec_id);
-        $('#edit-kecamatan').val(kecamatan);
-        $('#edit-kelurahan').val(kelurahan);
-        $('#edit-alamat').val(alamat);
-        $('#edit-role-name').text(nama); // Tampilkan nama role di header modal
+            // 2. Isi data Role ke dalam form modal
+            $('#edit-id').val(id);
+            $('#edit-fakultas_id').val(fakultas_id);
+            $('#edit-nama').val(nama);
+            $('#edit-nidn').val(nidn);
+            $('#edit-email').val(email);
+            $('#edit-tempat_lahir').val(tempat_lahir);
+            $('#edit-tanggal_lahir').val(tanggal_lahir);
+            $('#edit-jenis_kelamin').val(jenis_kelamin);
+            $('#edit-agama').val(agama);
+            $('#edit-prov_id').val(prov_id);
+            $('#edit-kab_id').val(kab_id);
+            $('#edit-kec_id').val(kec_id);
+            $('#edit-kecamatan').val(kecamatan);
+            $('#edit-kelurahan').val(kelurahan);
+            $('#edit-alamat').val(alamat);
+            $('#edit-role-name').text(nama); // Tampilkan nama role di header modal
 
-        // 3. Atur action form
-        // Ganti '/role/' dengan URL route Anda yang benar, misal '/roles' atau sejenisnya
-        $('#editForm').attr('action', '/dekan/' + id);
+            // 3. Atur action form
+            // Ganti '/role/' dengan URL route Anda yang benar, misal '/roles' atau sejenisnya
+            $('#editForm').attr('action', '/mahasiswa/' + id);
 
+        });
+        $('.btn-delete').on('click', function() {
+            var id = $(this).data('id');
+            var nama = $(this).data('nama');
+
+            // Isi data ke dalam form modal
+            $('#delete-id').val(id);
+            $('#delete-role-name').text(nama);
+
+            // Atur action form
+            // Ganti '/role/' dengan URL route Anda yang benar, misal '/roles' atau sejenisnya
+            $('#deleteForm').attr('action', '/mahasiswa/' + id);
+        });
     });
-    $('.btn-delete').on('click', function() {
-        var id = $(this).data('id');
-        var nama = $(this).data('nama');
-
-        // Isi data ke dalam form modal
-        $('#delete-id').val(id);
-        $('#delete-role-name').text(nama);
-
-        // Atur action form
-        // Ganti '/role/' dengan URL route Anda yang benar, misal '/roles' atau sejenisnya
-        $('#deleteForm').attr('action', '/dekan/' + id);
-    });
-});
   document.addEventListener('DOMContentLoaded', function() {
     const typeSelector = document.getElementById('user_selection_type');
     const existingBlock = document.getElementById('existing-user-block');
     const newUserBlock = document.getElementById('new-user-block');
     const existingUserId = document.getElementById('user_id');
-    const exsPeriodeMulai = document.getElementById('exs_periode_mulai');
-    const exsPeriodeSelesai = document.getElementById('exs_periode_selesai');
     const exsFakultas = document.getElementById('exs_fakultas_id');
+    const exsAngaktan = document.getElementById('exs_angkatan_id');
+    const nidnExisting = document.getElementById('nidn_existing');
+    const nidnNew = document.getElementById('nidn_new');
 
     const newUserFields = {
-        periode_mulai: document.getElementById('periode_mulai'),
-        periode_selesai: document.getElementById('periode_selesai'),
         fakultas_id: document.getElementById('fakultas_id'),
+        angkatan_id: document.getElementById('angkatan_id'),
         user_name: document.getElementById('user_name'),
         user_email: document.getElementById('user_email'),
         user_password: document.getElementById('user_password'),
@@ -569,6 +576,8 @@
 
               // Mengaktifkan field User Baru agar terkirim
               Object.values(newUserFields).forEach(field => field.removeAttribute('disabled'));
+              if (nidnExisting) nidnExisting.setAttribute('disabled', 'disabled');
+              if (nidnNew) nidnNew.removeAttribute('disabled');
 
           } else {
               // Skenario 2: Pilih User Existing
@@ -586,6 +595,8 @@
                   field.setAttribute('disabled', 'disabled');
                   field.value = '';
               });
+              if (nidnNew) nidnNew.setAttribute('disabled', 'disabled');
+              if (nidnExisting) nidnExisting.removeAttribute('disabled');
           }
       }
 

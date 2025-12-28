@@ -17,11 +17,17 @@ class Pengampu_mk extends Model
     {
         return $this->belongsToMany(
             Kelas::class,
-            'pengampu_mk_kelas'
+            'pengampu_mk_kelas',
+            'pengampu_mk_id',
+            'kelas_id'
         );
     }
     public function Matakuliah()
     {
         return $this->belongsTo(Matakuliah::class,'matakuliah_id');
+    }
+    public function Jadwal()
+    {
+        return $this->hasOne(Jadwal::class);
     }
 }

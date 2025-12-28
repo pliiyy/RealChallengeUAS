@@ -103,9 +103,10 @@
                       data-id="{{ $kls->id }}"
                       data-nomor_sk="{{ $kls->nomor_sk }}"
                       data-nomor_surat="{{ $kls->nomor_surat }}"
-                      data-tanggal="{{ $kls->tanggal }}"
+                      data-tanggal="{{ $kls->tanggal->format('Y-m-d') }}"
                       data-semester_id="{{ $kls->semester_id }}"
                       data-dosen_id="{{ $kls->dosen_id }}"
+                      data-file="{{ $kls->file }}"
                       data-pengampu_mk='@json($kls->pengampu_mk)'
                       > 
                       <i class="bi bi-pencil"></i>
@@ -179,7 +180,7 @@
           <label class="form-label">Semester</label>
           <select name="semester_id" class="form-select form-select-sm">
               @foreach ($semester as $item)
-                <option value="{{ $item->id }}">{{ $item->jenis }} {{ $item->tahun_akademik }}</option>
+                <option value="{{ $item->id }}">{{ $item->nama }} {{ $item->jenis }} {{ $item->tahun_akademik }}</option>
               @endforeach
           </select>
         </div>
@@ -230,7 +231,7 @@
 
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <form class="modal-content" action="/surat" method="POST" enctype="multipart/form-data">
+    <form class="modal-content" action="/surat" method="POST" enctype="multipart/form-data" id="editForm">
       @csrf
       @method('PUT')
       <div class="modal-header bg-primary text-white">
@@ -263,9 +264,12 @@
           <label class="form-label">Semester</label>
           <select name="semester_id" class="form-select form-select-sm" id="edit-semester_id">
               @foreach ($semester as $item)
-                <option value="{{ $item->id }}">{{ $item->jenis }} {{ $item->tahun_akademik }}</option>
+                <option value="{{ $item->id }}">{{ $item->nama }} {{ $item->jenis }} {{ $item->tahun_akademik }}</option>
               @endforeach
           </select>
+        </div>
+        <div class="col-md-6">
+          <input type="file" name="file" class="form-control form-control-sm" id="edit-file"/>
         </div>
         <div class="mt-2 col-md-12" id="pengampu-row-edit">
         </div>
@@ -408,7 +412,7 @@
                           name="pengampu[${i+1}][kelas][]" 
                           value="${m.id}" 
                           id="kelas_${m.id}"
-                          ${p.kelas.some(k => k.id == m.id) ? 'selected' : ''}
+                          ${p.kelas.some(k => k.id == m.id) ? 'checked' : ''}
                       >
                       <label class="form-check-label" for="kelas_${m.id}">
                           ${m.nama}
@@ -486,7 +490,6 @@
   
   let roleIndex = 1;
     document.getElementById('add-pengampu').addEventListener('click', function() {
-      console.log("clicked")
         let container = document.getElementById('pengampu-row');
         let html = `
           <div class="modal-body row g-1 pengampu-item border rounded" data-index="${roleIndex}">

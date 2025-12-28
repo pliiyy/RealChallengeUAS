@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained("user")->cascadeOnDelete();
             $table->foreignId('angkatan_id')->constrained("angkatan")->cascadeOnDelete();
+            $table->foreignId('kelas_id')->constrained("kelas")->cascadeOnDelete();
             $table->string('nim')->unique();
             $table->enum('status',['AKTIF','NONAKTIF','LULUS'])->default('AKTIF');
             $table->timestamps();
