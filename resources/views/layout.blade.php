@@ -229,11 +229,13 @@
                         <a href="/mahasiswa" class="nav-link"><i class="bi bi-person-lines-fill me-2"></i> Mahasiswa</a>
                         <a href="/kosma" class="nav-link"><i class="bi bi-person-lines-fill me-2"></i> Kosma</a>
                     </div>
-                    <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
+                    @if (Auth::user()->dekan || Auth::user()->kaprodi || Auth::user()->sekprodi)
+                        <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
                         href="#dataJadwal" role="button" aria-expanded="false" aria-controls="dataJadwal">
                         <span><i class="bi bi-folder2-open me-2"></i> Master Data</span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
+                    @endif
                     <div class="collapse ps-3" id="dataJadwal">
                         <a href="/fakultas" class="nav-link"><i class="bi bi-building me-2"></i> Fakultas</a>
                         <a href="/prodi" class="nav-link"><i class="bi bi-mortarboard me-2"></i> Program Studi</a>
@@ -244,10 +246,8 @@
                         <a href="/ruangan" class="nav-link"><i class="bi bi-door-closed me-2"></i> Ruangan</a>
                         <a href="/shift" class="nav-link"><i class="bi bi-person-lines-fill me-2"></i> Shift</a>
                     </div>
-                    {{-- <a href="/jadwal" class="nav-link"><i class="bi bi-clock-history me-2"></i>Buat Jadwal</a> --}}
                     <a href="/jadwal" class="nav-link"><i class="bi bi-clock-history me-2"></i>Jadwal</a>
-                    <a href="/pindah_jadwal" class="nav-link"><i class="bi bi-clock-history me-2"></i> Pindah Jadwal</a>
-                    <a href="/barter_jadwal" class="nav-link"><i class="bi bi-gear me-2"></i> Barter Jadwal</a>
+                    <a href="/pindah" class="nav-link"><i class="bi bi bi-arrow-left-right me-2"></i> Pindah Jadwal</a>
                     <a href="/surat" class="nav-link"><i class="bi bi-gear me-2"></i> Surat Tugas</a>
                     <a href="/settings" class="nav-link"><i class="bi bi-gear me-2"></i> Pengaturan</a>
                 </nav>

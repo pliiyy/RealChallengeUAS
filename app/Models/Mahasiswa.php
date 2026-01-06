@@ -13,6 +13,10 @@ class Mahasiswa extends Model
     {
         return $this->belongsTo(User::class,'user_id');
     }
+    public function Kosma()
+    {
+        return $this->hasOne(Kosma::class);
+    }
     public function Kelas()
     {
         return $this->belongsTo(Kelas::class,'kelas_id');

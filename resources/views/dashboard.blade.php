@@ -8,7 +8,7 @@
         <div class="row g-4 ">
             <!-- Card Pengguna -->
             <div class="col-md-4">
-                <a href="/data" style="text-decoration: none">
+                <a href="/user" style="text-decoration: none">
                     <div class="card p-4">
                         <div class="d-flex align-items-center">
                             <div class="icon bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
@@ -32,7 +32,7 @@
                         </div>
                         <div>
                             <h5 class="card-title mb-1">Notifikasi</h5>
-                            <p class="card-text text-muted mb-0">{{ $total }} pesan belum dibaca</p>
+                            <p class="card-text text-muted mb-0">{{ $total }} Perpindahan jadwal</p>
                         </div>
                     </div>
                 </div>
@@ -62,12 +62,19 @@
             <div class="row">
                 <div class="col-md-6 col-lg-3 mb-3">
                     <p class="fw-semibold mb-1 text-muted">Nama</p>
-                    <p class="mb-0">{{ auth()->user()->Biodata->nama ?? 'Rafly Adrian Firmansyah' }}</p>
+                    <p class="mb-0">{{ auth()->user()->biodata->nama ?? 'Rafly Adrian Firmansyah' }}</p>
+                    <p class="mb-0" style="font-style:italic;">{{ auth()->user()->email ?? 'Rafly Adrian Firmansyah' }}</p>
                 </div>
                 <div class="col-md-6 col-lg-3 mb-3">
                     <p class="fw-semibold mb-1 text-muted">NIDN/NIM</p>
-                    <p class="mb-0">{{ auth()->user()->dosen->nidn ?? '-' }}</p>
-                    <p class="mb-0">{{ auth()->user()->mahasiswa->nim ?? '-' }}</p>
+                    <p class="mb-0">NIDN : {{ auth()->user()->dosen->nidn ?? '-' }}</p>
+                    <p class="mb-0">NIM : {{ auth()->user()->mahasiswa->nim ?? '-' }}</p>
+                </div>
+                <div class="col-md-6 col-lg-3 mb-3">
+                    <p class="fw-semibold mb-1 text-muted">Roles</p>
+                    @foreach (auth()->user()->role as $item)
+                        <span class="badge bg-info">{{ ucfirst(strtolower($item->nama)) }}</span>
+                    @endforeach
                 </div>
             </div>
         </div>

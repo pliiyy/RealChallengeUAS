@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 
-class SuratTugasController extends Controller
+class SuratTugasController extends Controller 
 {
     public function index(Request $request)
     {

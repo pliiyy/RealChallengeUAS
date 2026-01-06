@@ -6,10 +6,12 @@
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
       <span>📄 Surat Tugas Mengajar</span>
-      <button class="btn btn-light btn-sm text-primary fw-semibold" data-bs-toggle="modal"
+      @if (Auth::user()->dekan || Auth::user()->kaprodi)
+        <button class="btn btn-light btn-sm text-primary fw-semibold" data-bs-toggle="modal"
           data-bs-target="#addModal">
         <i class="bi bi-plus-circle"></i> Tambah
       </button>
+      @endif
       <form action="/surat" method="GET" class="d-flex gap-2 align-items-center">
           <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari ..."
               value="{{ request('search') }}">
@@ -40,6 +42,7 @@
               <th>Pembuat</th>
               <th>Kepada</th>
               <th>Nomor</th>
+              <th>Matakuliah</th>
               <th>Tgl & Semester</th>
               <th>Surat</th>
               <th>Status</th>
@@ -66,6 +69,13 @@
                   <div class="flex flex-col">
                     <span>SK: {{ $kls->nomor_sk }}</span>
                     <span class="italic opacity-70" style="font-style:italic;color:#888">Surat: {{ $kls->nomor_surat }}</span>
+                  </div>
+                </td>
+                <td >
+                  <div class="flex flex-col text-sm">
+                    @foreach ($kls->pengampu_mk as $p)
+                      <div>- {{ $p->matakuliah->nama }} ({{ $p->matakuliah->prodi->kode }}) </div>
+                    @endforeach
                   </div>
                 </td>
                 <td >
@@ -116,6 +126,7 @@
                       data-id="{{ $kls->id }}" data-nama="{{ $kls->nomor_surat }}">
                       <i class="bi bi-trash"></i>
                   </button>
+                @if (Auth::user()->dekan)
                   <button type="button" class="btn btn-outline-success btn-sm btn-action"
                       data-bs-toggle="modal" data-bs-target="#actionModal"
                       data-id="{{ $kls->id }}" data-kelas-id="{{ $kls->kelas_id }}"
@@ -133,6 +144,7 @@
                       title="Tolak Tugas">
                       <i class="bi bi-x-circle"></i>
                   </button>
+                  @endif
                 </td>
               </tr>
           @endforeach
@@ -207,7 +219,7 @@
                               id="kelas_{{ $k->id }}"
                           >
                           <label class="form-check-label" for="kelas_{{ $k->id }}">
-                              {{ $k->nama }}
+                              {{ $k->nama }} ({{ $k->tipe }})
                           </label>
                       </div>
                   @endforeach
@@ -415,7 +427,7 @@
                           ${p.kelas.some(k => k.id == m.id) ? 'checked' : ''}
                       >
                       <label class="form-check-label" for="kelas_${m.id}">
-                          ${m.nama}
+                          ${m.nama} (${m.tipe})
                       </label>
                     </div>
                   `).join("")}
@@ -512,7 +524,7 @@
                         id="kelas_${m.id}"
                     >
                     <label class="form-check-label" for="kelas_${m.id}">
-                        ${m.nama}
+                        ${m.nama} (${m.tipe})
                     </label>
                   </div>
                 `).join("")}
@@ -555,7 +567,7 @@
                         id="kelas_${m.id}"
                     >
                     <label class="form-check-label" for="kelas_${m.id}">
-                        ${m.nama}
+                        ${m.nama} (${m.tipe})
                     </label>
                   </div>
                 `).join("")}

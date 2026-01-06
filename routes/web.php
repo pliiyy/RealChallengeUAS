@@ -11,6 +11,7 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\KosmaController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\MatakuliahController;
+use App\Http\Controllers\PindahJadwalController;
 use App\Http\Controllers\ProdiController;
 use App\Http\Controllers\RuanganController;
 use App\Http\Controllers\SekprodiController;
@@ -34,6 +35,8 @@ Route::get('/settings', function () {
 Route::get('/profil', function () {
         return view('profile');
     })->middleware('auth.user');
+Route::PUT('/profil', [UserController::class, 'editProfil'])->middleware('auth.user');
+Route::put('/profil/foto', [UserController::class, 'updateFoto'])->name('profil.updateFoto');
 
 // Master Data
 Route::middleware('auth.user')->group(function () {
@@ -62,6 +65,7 @@ Route::middleware('auth.user')->group(function () {
 Route::middleware('auth.user')->group(function () {
     Route::resource("surat",SuratTugasController::class);
     Route::resource("jadwal",JadwalController::class)->name('index',"jadwal");
+    Route::resource("pindah",PindahJadwalController::class)->name('index',"pindah");
 });
 
 // Wilayah Data
@@ -82,3 +86,6 @@ Route::get('/api/districts/{regencyId}', function ($regencyId) {
 Route::get('/laporan/pdf/generate', [SuratTugasController::class, 'generateSurat'])->name('laporan.pdf.generate');
 Route::get('/laporan/pdf/show', [SuratTugasController::class, 'viewSurat'])->name('laporan.pdf.show');
 Route::get('/rekap', [UserController::class, 'jadwal']);
+Route::get('/jadwals/download', [JadwalController::class, 'download'])->name('jadwal.download');
+Route::get('/ruang', [JadwalController::class, 'ruang']);
+Route::get('/ruang/download', [JadwalController::class, 'ruangDownload'])->name('jadwal.ruang');

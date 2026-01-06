@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Fakultas;
 use App\Models\Jadwal;
-use App\Models\Kelas;
-use App\Models\Pengampu_mk;
 use App\Models\Ruangan;
 use App\Models\Semester;
 use App\Models\Shift;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,72 +15,158 @@ class JadwalController extends Controller
 {
     public function index(Request $request)
     {
-        $fakultas = Fakultas::where("status","AKTIF")->get();
-        $selectedFakultas = $request->filled('fakultas_id')
-        ? Fakultas::findOrFail($request->fakultas_id)
-        : Fakultas::where('status','AKTIF')->firstOrFail();
+        // Ambil fakultas dan semester yang dipilih
+        $fakultas = Fakultas::with(['prodi.kelas'])->where("status", "AKTIF")->get();
+        $selectedFakultas = $request->filled('fakultas_id') ? $fakultas->findOrFail($request->fakultas_id) : $fakultas->first();
+        $semester = Semester::where("status", "AKTIF")->get();
         $selectedSemester = $request->filled('semester_id')
-        ? Semester::findOrFail($request->semester_id)
-        : Semester::where('status','AKTIF')->firstOrFail();
+            ? $semester->findOrFail($request->semester_id)
+            : $semester->first();
 
-        $hari = ['Senin', 'Selasa','Rabu','Kamis','Jumat'];
+        $hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 
-        $shift = Shift::orderBy('jam_mulai')
-        ->with(['jadwal' => function ($q) use ($selectedSemester, $request) {
-            $q->whereHas('pengampu_mk.surat_tugas', function ($q2) use ($selectedSemester) {
-                $q2->where('semester_id', $selectedSemester->id);
+        // Query untuk shift dengan jadwal yang relevan
+        $shift = Shift::orderBy('jam_mulai')->with(['jadwal.pengampu_mk.surat_tugas.semester', 'jadwal.pengampu_mk.kelas','jadwal.pengampu_mk.matakuliah','jadwal.pengampu_mk.surat_tugas.dosen','jadwal.ruangan'])->get();
+
+        $ruangan = Ruangan::where("status", "AKTIF")->get();
+        $jadwal = Jadwal::with([
+            'pengampu_mk.surat_tugas',
+            'pengampu_mk.matakuliah.prodi'
+        ])
+        ->whereHas('pengampu_mk', function ($q) use ($selectedFakultas, $selectedSemester) {
+            $q->whereHas('surat_tugas', function ($q) use ($selectedSemester) {
+                $q->where('dosen_id', Auth::user()->dosen->id)
+                ->where('semester_id', $selectedSemester->id);
             })
-            ->when($request->kelas, function ($q) use ($request) {
-                $q->whereHas('pengampu_mk.kelas', function ($q2) use ($request) {
-                    $q2->where('tipe', $request->kelas ?? "R");
-                });
-            })
-            ->with([
-                'ruangan',
-                'pengampu_mk.kelas.prodi',
-                'pengampu_mk.matakuliah',
-                'pengampu_mk.surat_tugas.dosen',
-                'pengampu_mk.surat_tugas.semester'
-            ]);
-        }])
-        ->get();
-
-        $kelas = Kelas::where('semester_id',$selectedSemester->id)
-        ->whereHas('prodi.fakultas', function ($q) use ($selectedFakultas){
-                $q->where('id', $selectedFakultas->id);
-            })->get();
-        
-        $dosenId = optional(Auth::user())->dosen_id;
-
-        $pengampu = Pengampu_mk::with(['matakuliah.prodi','kelas','jadwal'])->whereHas('surat_tugas', function ($q) use ($selectedSemester, $dosenId) {
-            $q->where('semester_id', $selectedSemester->id)
-            ->where('status', 'APPROVED')
-            ->when($dosenId, function ($q2) use ($dosenId) {
-                $q2->where('dosen_id', $dosenId);
+            ->whereHas('matakuliah.prodi', function ($q) use ($selectedFakultas) {
+                $q->where('fakultas_id', $selectedFakultas->id);
             });
-        })->whereHas('kelas', function ($q) use ($request) {
-            $q->where('tipe', $request->kelas ?? "R");
         })
-        ->whereDoesntHave('jadwal')
         ->get();
 
-        $ruangan = Ruangan::where("status","AKTIF")->get();
-
-
-        return view('jadwal', compact('fakultas','selectedFakultas','selectedSemester','kelas','shift','hari','pengampu','ruangan'));
+        return view('jadwal', compact(
+            'fakultas', 
+            'selectedFakultas', 
+            'semester', 
+            'selectedSemester', 
+            'shift', 
+            'hari', 
+            'ruangan','jadwal'
+        ));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-        'pengampu_mk_id' => 'required',
-        'hari' => 'required',
-        'shift_id' => 'required',
-        'ruangan_id' => 'required',
+            'pengampu_mk_id' => 'required|exists:pengampu_mk,id',
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat',
+            'shift_id' => 'required|exists:shift,id',
+            'ruangan_id' => 'required|exists:ruangan,id',
         ]);
+
+        // Cek konflik jadwal lebih komprehensif
+        $conflict = Jadwal::where('hari', $request->hari)
+            ->where('shift_id', $request->shift_id)
+            ->where('ruangan_id', $request->ruangan_id)
+            ->whereHas('pengampu_mk.surat_tugas', function ($q) use ($validated) {
+                $q->where('semester_id', function ($sub) use ($validated) {
+                    $sub->select('semester_id')
+                        ->from('pengampu_mk')
+                        ->where('id', $validated['pengampu_mk_id'])
+                        ->limit(1);
+                });
+            })
+            ->exists();
+
+        if ($conflict) {
+            return redirect()->back()->with('error', 'Jadwal tidak dapat ditambahkan karena bentrok dengan jadwal lain!');
+        }
 
         Jadwal::create($validated);
 
-        return redirect()->back()->with('success','Jadwal berhasil ditambahkan');
+        return redirect()->back()->with('success', 'Jadwal berhasil ditambahkan');
+    }
+
+    public function download(Request $request)
+    {
+        // Ambil fakultas dan semester yang dipilih
+        $fakultas = Fakultas::with(['prodi.kelas'])->where("status", "AKTIF")->get();
+        $selectedFakultas = $request->filled('fakultas_id') ? $fakultas->findOrFail($request->fakultas_id) : $fakultas->first();
+        $semester = Semester::where("status", "AKTIF")->get();
+        $selectedSemester = $request->filled('semester_id')
+            ? $semester->findOrFail($request->semester_id)
+            : $semester->first();
+
+        $hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $kelasFilter = $request->kelas ?? "R";
+
+        // Query untuk shift dengan jadwal yang relevan
+        $shift = Shift::orderBy('jam_mulai')->with(['jadwal.pengampu_mk.surat_tugas.semester', 'jadwal.pengampu_mk.kelas','jadwal.pengampu_mk.matakuliah','jadwal.pengampu_mk.surat_tugas.dosen','jadwal.ruangan'])->get();
+
+        $ruangan = Ruangan::where("status", "AKTIF")->get();
+
+        $pdf = Pdf::loadView('exportjadwal', compact(
+            'fakultas', 
+            'selectedFakultas', 
+            'semester', 
+            'selectedSemester', 
+            'shift', 
+            'hari', 
+            'ruangan'
+        ))->setOption('isHtml5ParserEnabled', true);
+        return $pdf->download('jadwal.pdf');
+    }
+    public function ruang(Request $request)
+    {
+        // Ambil fakultas dan semester yang dipilih
+        $fakultas = Fakultas::with(['prodi.kelas'])->where("status", "AKTIF")->get();
+        $selectedFakultas = $request->filled('fakultas_id') ? $fakultas->findOrFail($request->fakultas_id) : $fakultas->first();
+        $semester = Semester::where("status", "AKTIF")->get();
+        $selectedSemester = $request->filled('semester_id')
+            ? $semester->findOrFail($request->semester_id)
+            : $semester->first();
+
+
+        // Query untuk shift dengan jadwal yang relevan
+        $shift = Shift::orderBy('jam_mulai')->with(['jadwal.pengampu_mk.surat_tugas.semester', 'jadwal.pengampu_mk.kelas','jadwal.pengampu_mk.matakuliah','jadwal.pengampu_mk.surat_tugas.dosen','jadwal.ruangan'])->get();
+
+        $ruangan = Ruangan::where("status", "AKTIF")->get();
+        $hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        return view('ruang', compact(
+            'fakultas', 
+            'selectedFakultas', 
+            'semester', 
+            'selectedSemester', 
+            'shift', 
+            'ruangan',
+            'hari'
+        ));
+    }
+    public function ruangDownload(Request $request)
+    {
+        // Ambil fakultas dan semester yang dipilih
+        $fakultas = Fakultas::with(['prodi.kelas'])->where("status", "AKTIF")->get();
+        $selectedFakultas = $request->filled('fakultas_id') ? $fakultas->findOrFail($request->fakultas_id) : $fakultas->first();
+        $semester = Semester::where("status", "AKTIF")->get();
+        $selectedSemester = $request->filled('semester_id')
+            ? $semester->findOrFail($request->semester_id)
+            : $semester->first();
+
+
+        // Query untuk shift dengan jadwal yang relevan
+        $shift = Shift::orderBy('jam_mulai')->with(['jadwal.pengampu_mk.surat_tugas.semester', 'jadwal.pengampu_mk.kelas','jadwal.pengampu_mk.matakuliah','jadwal.pengampu_mk.surat_tugas.dosen','jadwal.ruangan'])->get();
+
+        $ruangan = Ruangan::where("status", "AKTIF")->get();
+        $hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $pdf = Pdf::loadView('exportruang', compact(
+            'fakultas', 
+            'selectedFakultas', 
+            'semester', 
+            'selectedSemester', 
+            'shift', 
+            'ruangan',
+            'hari'
+        ))->setOption('isHtml5ParserEnabled', true);
+        return $pdf->download('jadwalruang.pdf');
     }
 }

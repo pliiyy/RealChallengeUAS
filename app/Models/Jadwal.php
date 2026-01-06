@@ -21,4 +21,8 @@ class Jadwal extends Model
     {
         return $this->belongsTo(Shift::class,'shift_id');
     }
+    public function Pindah_jadwal()
+    {
+        return $this->hasMany(Pindah_jadwal::class);
+    }
 }

@@ -8,7 +8,7 @@
             <div class="profile-header text-center py-4 bg-primary text-white rounded-top">
                 {{-- Lingkaran foto bisa diklik untuk upload --}}
                 <form id="formUploadFoto" method="POST" 
-                    enctype="multipart/form-data">
+                    enctype="multipart/form-data" action="{{ route('profil.updateFoto') }}"> 
                     @csrf
                     @method('PUT')
                     <input type="file" name="foto" id="fotoInput" accept="image/*" style="display: none;"
@@ -64,9 +64,19 @@
                                 value="{{ auth()->user()->email ?? '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="info-label mb-1">No. Telepon</label>
-                            <input type="text" name="no_telepon" class="form-control" placeholder="0812-3456-7890"
-                                value="{{ auth()->user()->biodata->no_telepon ?? '' }}">
+                            <label class="info-label mb-1">Agama</label>
+                            <select name="agama" class="form-select">
+                                <option value="" disabled selected>Pilih Agama</option>
+                                @php
+                                    $agamaOptions = ["ISLAM","PROTESTAN","KATOLIK","HINDU","BUDHA","KONGHUCU"];
+                                    $selectedAgama = auth()->user()->biodata->agama ?? '';
+                                @endphp
+                                @foreach ($agamaOptions as $option)
+                                    <option value="{{ $option }}" {{ $selectedAgama === $option ? 'selected' : '' }}>
+                                        {{ $option }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="info-label mb-1">Alamat</label>
