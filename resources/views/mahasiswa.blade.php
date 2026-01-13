@@ -586,8 +586,6 @@
 
               // Mengaktifkan user_id
               existingUserId.removeAttribute('disabled');
-              exsPeriodeMulai.removeAttribute('disabled');
-              exsPeriodeSelesai.removeAttribute('disabled');
               exsFakultas.removeAttribute('disabled');
 
               // Menonaktifkan field User Baru dan membersihkan nilainya
